@@ -64,3 +64,4 @@ table.t img{width:48px;height:48px;border-radius:8px;object-fit:cover}
   .tbl-wrap{border:0;overflow:visible}
   table.t{font-size:11px}table.t th,table.t td{border:1px solid #999;padding:5px 6px}
 }
+.side .grp{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;opacity:.65;padding:14px 16px 4px}

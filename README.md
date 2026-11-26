@@ -80,3 +80,8 @@ python3 -m http.server 8000   # lalu buka http://localhost:8000
 - Admin baru: tab **Berita** dan **Slide Beranda**; pengaturan **warna utama/aksen**, **sub nama**, statistik ekskul; guru punya **kategori** (Guru/Staf); pengumuman punya penulis/label/tautan.
 - Wajib **Publish ulang `firestore.rules`** (koleksi `berita`, `slider`, kolom `telp`/`subjek` pada pesan).
 - Berita/pengumuman/galeri wajib punya tanggal agar tampil.
+
+## Pembaruan: modul sekolah di admin
+Menu baru (sidebar): Kesiswaan (Data Siswa, Rombel, Kenaikan & Kelulusan, Presensi Siswa, Rekap), Pembelajaran & Rapor (Mapel, Input Nilai, Rapor), Keuangan (Buku Kas, Anggaran, Realisasi), Pengaturan Akademik.
+Urutan awal: Pengaturan Akademik → Rombel → Mata Pelajaran → Data Siswa (atau Impor CSV).
+**Wajib Publish ulang `firestore.rules`** (koleksi baru hanya bisa diakses admin).

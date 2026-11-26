@@ -5,12 +5,22 @@ import {
 import { $, $$, esc, safeUrl, fmtDate, toast, compressImage, today } from "./util.js";
 import { DEFAULT_SETTINGS } from "./defaults.js";
 import { presensiTabs } from "./admin-presensi.js";
+import { akademikTabs } from "./admin-akademik.js";
 
 const root = $("#root");
 const state = { user: null, tab: "dashboard", counts: {} };
 
 /* ---------- Skema data ---------- */
 const COLS = {
+  rombel: { label: "Rombel / Kelas", cols: ["nama", "tingkat", "waliKelas", "urutan"], sort: (a, b) => (a.urutan || 0) - (b.urutan || 0) || String(a.nama).localeCompare(String(b.nama)),
+    init: () => ({ urutan: 1 }),
+    fields: [{ k: "nama", l: "Nama rombel (mis. 1A)", req: 1 }, { k: "tingkat", l: "Tingkat (1–6)", t: "number" }, { k: "waliKelas", l: "Wali kelas" }, { k: "urutan", l: "Urutan", t: "number" }] },
+  mapel: { label: "Mata Pelajaran", cols: ["nama", "kelompok", "urutan"], sort: (a, b) => (a.urutan || 0) - (b.urutan || 0),
+    init: () => ({ urutan: 1 }),
+    fields: [{ k: "nama", l: "Nama mata pelajaran", req: 1 }, { k: "kelompok", l: "Kelompok (mis. Umum, Agama)" }, { k: "urutan", l: "Urutan di rapor", t: "number" }] },
+  anggaran: { label: "Anggaran", cols: ["tapel", "jenis", "kategori", "uraian", "jumlah"], sort: (a, b) => String(b.tapel).localeCompare(String(a.tapel)) || String(a.kategori).localeCompare(String(b.kategori)),
+    init: () => ({ jenis: "Pengeluaran" }),
+    fields: [{ k: "tapel", l: "Tahun pelajaran (mis. 2026/2027)", req: 1 }, { k: "jenis", l: "Jenis", t: "select", opts: ["Penerimaan", "Pengeluaran"] }, { k: "kategori", l: "Kategori (samakan dengan Buku Kas)", req: 1 }, { k: "uraian", l: "Uraian" }, { k: "jumlah", l: "Jumlah (Rp)", t: "number", req: 1 }] },
   pengumuman: { label: "Pengumuman", cols: ["tanggal", "judul"], sort: (a, b) => String(b.tanggal).localeCompare(String(a.tanggal)),
     init: () => ({ tanggal: today() }),
     fields: [{ k: "judul", l: "Judul", req: 1 }, { k: "tanggal", l: "Tanggal", t: "date", req: 1 }, { k: "isi", l: "Isi pengumuman", t: "textarea", req: 1 }, { k: "penulis", l: "Penulis (mis. Panitia)" }, { k: "tag", l: "Label (mis. Akademik, PPDB)" }, { k: "tautan", l: "Tautan terkait (https://…, opsional)" }, { k: "labelTautan", l: "Teks tombol tautan (mis. Lihat Info)" }, { k: "gambar", l: "Gambar (opsional)", t: "image", w: 800, lim: 150000 }] },
@@ -67,7 +77,7 @@ function fieldHTML(f, v) {
   const req = f.req ? " required" : "";
   const lab = `${esc(f.l)}${f.req ? ' <span class="req">*</span>' : ""}`;
   if (f.t === "textarea") return `<label class="f">${lab}<textarea name="${f.k}" rows="${f.rows || 4}"${req}>${esc(val)}</textarea></label>`;
-  if (f.t === "select") return `<label class="f">${lab}<select name="${f.k}">${f.opts.map(o => `<option ${String(val) === o ? "selected" : ""}>${esc(o)}</option>`).join("")}</select></label>`;
+  if (f.t === "select") return `<label class="f">${lab}<select name="${f.k}">${f.opts.map(o => { const [ov, ol] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(ov)}" ${String(val) === String(ov) ? "selected" : ""}>${esc(ol)}</option>`; }).join("")}</select></label>`;
   if (f.t === "checkbox") return `<label class="f"><input type="checkbox" name="${f.k}" ${val ? "checked" : ""}>${lab}</label>`;
   if (f.t === "image") {
     const u = safeUrl(val);
@@ -150,7 +160,10 @@ function viewDenied(user) {
 /* ---------- Shell ---------- */
 const TABS = [["dashboard", "Dashboard"], ["berita", "Berita"], ["pengumuman", "Pengumuman"], ["slider", "Slide Beranda"], ["guru", "Guru & Staf"], ["galeri", "Galeri"], ["fasilitas", "Fasilitas"],
   ["program", "Program"], ["ppdb", "Pendaftar PPDB"], ["pesan", "Pesan Masuk"], ["presensi", "Presensi Hari Ini"], ["rekap", "Rekap Presensi"],
-  ["pegawai", "Akun Guru"], ["presensiset", "Pengaturan Presensi"], ["pengaturan", "Pengaturan Website"]];
+  ["pegawai", "Akun Guru"], ["presensiset", "Pengaturan Presensi"], ["pengaturan", "Pengaturan Website"],
+  ["siswa", "Data Siswa"], ["rombel", "Rombel / Kelas"], ["naik", "Kenaikan & Kelulusan"], ["absen", "Presensi Siswa"], ["rekapsiswa", "Rekap Presensi Siswa"],
+  ["mapel", "Mata Pelajaran"], ["nilai", "Input Nilai"], ["rapor", "Rapor"], ["kas", "Buku Kas"], ["anggaran", "Anggaran"], ["realisasi", "Realisasi Anggaran"], ["akad", "Pengaturan Akademik"]];
+const GROUP = { dashboard: "Website", presensi: "Presensi Guru", siswa: "Kesiswaan", mapel: "Pembelajaran & Rapor", kas: "Keuangan", akad: "Sistem" };
 
 const IC = {
   dashboard: '<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
@@ -168,6 +181,18 @@ const IC = {
   pegawai: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
   presensiset: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
   pengaturan: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18"/>',
+  siswa: '<circle cx="12" cy="8" r="3.5"/><path d="M5 21c0-4 3-6 7-6s7 2 7 6"/>',
+  rombel: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/>',
+  naik: '<path d="M12 20V6M6 12l6-6 6 6"/>',
+  absen: '<path d="M5 12l4 4 10-10"/><rect x="3" y="3" width="18" height="18" rx="3"/>',
+  rekapsiswa: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 17v-5M12 17V8M16 17v-3"/>',
+  mapel: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/>',
+  nilai: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  rapor: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/>',
+  kas: '<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.6"/>',
+  anggaran: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  realisasi: '<circle cx="12" cy="12" r="9"/><path d="M12 12V3M12 12l6 4"/>',
+  akad: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
   out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
   ext: '<path d="M14 3h7v7M21 3l-9 9M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/>',
   menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
@@ -191,7 +216,7 @@ async function shell() {
   const tglStr = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" }).format(new Date());
   const mail = (state.user && state.user.email) || "Admin";
   root.innerHTML = `<div class="shell"><aside class="side" id="side"><div class="brand-a"><img src="icons/logo-192.png" alt=""><h2>Admin MI Bahrul Ulum</h2></div>
-    <nav>${TABS.map(([k, l]) => `<a href="#${k}" data-t="${k}" class="${state.tab === k ? "on" : ""}">${ico(k)}<span>${l}</span>${badge(k)}</a>`).join("")}</nav>
+    <nav>${TABS.map(([k, l]) => `${GROUP[k] ? `<div class="grp">${GROUP[k]}</div>` : ""}<a href="#${k}" data-t="${k}" class="${state.tab === k ? "on" : ""}">${ico(k)}<span>${l}</span>${badge(k)}</a>`).join("")}</nav>
     <div class="foot-links"><a href="index.html" target="_blank" rel="noopener">${ico("ext")}<span>Lihat website</span></a><a href="#" id="logout">${ico("out")}<span>Keluar</span></a></div></aside>
     <div class="scrim" id="scrim"></div>
     <div class="content"><header class="topbar"><button class="menu-btn" id="menu" aria-label="Menu">${ico("menu")}</button><span class="sp"></span>
@@ -222,6 +247,7 @@ async function renderTab() {
     else if (state.tab === "pegawai") await P.pegawai(main);
     else if (state.tab === "presensiset") await P.setelan(main);
     else if (state.tab === "pengaturan") await tabSettings(main);
+    else if (AK[state.tab]) await AK[state.tab](main);
   } catch (e) { console.error(e); main.innerHTML = `<div class="alert warn">${esc(errMsg(e))}</div>`; }
 }
 window.addEventListener("hashchange", () => {
@@ -364,6 +390,9 @@ async function tabSettings(main) {
 
 /* ---------- Presensi (modul terpisah) ---------- */
 const P = presensiTabs({ fieldHTML, readForm, modal, errMsg, wireImages, refresh: () => renderTab() });
+
+const AK0 = akademikTabs({ fieldHTML, readForm, modal, errMsg, wireImages });
+const AK = { siswa: AK0.siswa, naik: AK0.naik, absen: AK0.absen, rekapsiswa: AK0.rekapSiswa, nilai: AK0.nilai, rapor: AK0.rapor, kas: AK0.kas, realisasi: AK0.realisasi, akad: AK0.akad };
 
 /* ---------- Start ---------- */
 if (!configured) viewSetup();
