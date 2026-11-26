@@ -65,3 +65,14 @@ table.t img{width:48px;height:48px;border-radius:8px;object-fit:cover}
   table.t{font-size:11px}table.t th,table.t td{border:1px solid #999;padding:5px 6px}
 }
 .side .grp{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;opacity:.65;padding:14px 16px 4px}
+
+/* Tema admin = tema website publik (navy) */
+body.admin{--pri:#1b4398;--acc:#f5b82e;--ok:#22a455;--dark:color-mix(in srgb,var(--pri) 55%,#000);--bg:#f3f6fc;--line:#e3eaf6;--mute:#56627c;--ink:#14295b;--shadow:0 8px 28px rgba(27,67,152,.09);background:var(--bg);color:#243453}
+body.admin h1,body.admin h2,body.admin h3{color:var(--ink)}
+.top h1{color:var(--ink)}
+.side a{color:#d9e4fb}
+.kpi>span:last-child{color:#33466f}
+.pill.diterima{background:#e0f5e9;color:#178344}
+.btn-ok,.btn.ok{background:var(--ok)}
+.side a.on{background:var(--acc);color:#2d2200}
+body.admin{--pri-d:color-mix(in srgb,var(--pri) 72%,#000);--pri-l:color-mix(in srgb,var(--pri) 9%,#fff);--acc-d:color-mix(in srgb,var(--acc) 80%,#000)}
