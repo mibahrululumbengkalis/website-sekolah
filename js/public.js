@@ -73,7 +73,7 @@ function applyBrand() {
     ${fi(I.tel, "Kontak & Info", [s.telp, wa ? "WA " + s.wa : ""].filter(Boolean).join(" · "))}
     ${fi(I.web, "Media Sosial & Email", s.email)}
     <div class="socs">${sosmed}</div>
-  </div><div class="copy"><span>${esc(s.nama)}${s.alamat ? " · " + esc(clip(s.alamat, 60)) : ""}</span><span><a href="guru.html">Portal Guru</a> · © ${new Date().getFullYear()} ${esc(s.nama)}. Hak cipta dilindungi.</span></div></div>`;
+  </div><div class="copy"><span>${esc(s.nama)}${s.alamat ? " · " + esc(clip(s.alamat, 60)) : ""}</span><span><a href="admin.html">Login</a> · © ${new Date().getFullYear()} ${esc(s.nama)}. Hak cipta dilindungi.</span></div></div>`;
 }
 
 /* ---------- Komponen ---------- */
@@ -341,8 +341,6 @@ async function render() {
 
 /* ---------- PWA ---------- */
 let deferred;
-window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; $("#install").hidden = false; });
-$("#install").addEventListener("click", async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $("#install").hidden = true; });
 $("#burger").addEventListener("click", () => { const o = $("#nav").classList.toggle("open"); $("#burger").setAttribute("aria-expanded", o); });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 

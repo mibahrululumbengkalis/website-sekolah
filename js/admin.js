@@ -132,7 +132,7 @@ function viewSetup() {
     <a class="btn btn-ghost" href="index.html">← Ke website</a></div></div>`;
 }
 function viewLogin(msg = "") {
-  root.innerHTML = `<div class="login"><div class="card card-body"><img src="icons/logo-192.png" alt="" style="width:72px;height:72px;display:block;margin:0 auto 10px"><h2 style="text-align:center">Masuk Admin / Guru</h2><p class="muted" style="text-align:center">MI Bahrul Ulum · admin ke panel admin, guru ke portal guru</p>
+  root.innerHTML = `<div class="login"><div class="card card-body"><img src="icons/logo-192.png" alt="" style="width:72px;height:72px;display:block;margin:0 auto 10px"><h2 style="text-align:center">Selamat Datang</h2><p class="muted" style="text-align:center">MI Bahrul Ulum<br>Masuk dengan akun Anda (admin, guru, atau orang tua)</p>
     <form class="form" id="f-login"><label class="f">Email<input type="email" name="email" required autocomplete="username"></label>
     <label class="f">Kata sandi<input type="password" name="pw" required autocomplete="current-password"></label>
     <button class="btn" type="submit">Masuk</button><div id="login-msg">${msg}</div>
@@ -149,7 +149,7 @@ function viewLogin(msg = "") {
   });
 }
 function viewDenied(user) {
-  root.innerHTML = `<div class="login"><div class="card card-body"><h2>Akun belum terdaftar</h2><p>Akun ini bukan admin maupun guru aktif. Jika Anda guru, hubungi admin. Jika Anda admin, buat dokumen berikut:</p>
+  root.innerHTML = `<div class="login"><div class="card card-body"><h2>Akun belum terdaftar</h2><p>Akun ini belum memiliki akses (admin atau guru aktif). Hubungi admin madrasah. Jika Anda admin, buat dokumen berikut:</p>
     <p>Buat dokumen di Firestore: koleksi <code>admins</code>, Document ID berikut:</p>
     <p><code style="word-break:break-all;user-select:all">${esc(user.uid)}</code></p>
     <p class="muted small">Isi field bebas (mis. <code>nama</code> = nama Anda). Setelah itu muat ulang halaman.</p>
