@@ -37,7 +37,7 @@ const COLS = {
 const SETTINGS = [
   { g: "Identitas & Beranda", f: [
     { k: "nama", l: "Nama madrasah", req: 1 }, { k: "tagline", l: "Tagline" }, { k: "logo", l: "Logo", t: "image", w: 256, lim: 60000 },
-    { k: "subjudul", l: "Sub nama (mis. Madrasah Ibtidaiyah)" }, { k: "warnaUtama", l: "Warna utama (kode hex, mis. #0f6b4f)" }, { k: "warnaAksen", l: "Warna aksen (kode hex, mis. #f5b82e)" },
+    { k: "subjudul", l: "Sub nama (mis. Madrasah Ibtidaiyah)" }, { k: "warnaUtama", l: "Warna utama (kode hex, mis. #1b4398)" }, { k: "warnaAksen", l: "Warna aksen (kode hex, mis. #f5b82e)" },
     { k: "heroJudul", l: "Judul besar beranda (dipakai bila belum ada Slide)" }, { k: "heroSub", l: "Sub judul beranda", t: "textarea" },
     { k: "heroGambar", l: "Gambar latar beranda", t: "image", w: 1400, q: .65, lim: 220000 }] },
   { g: "Sambutan Kepala Madrasah", f: [

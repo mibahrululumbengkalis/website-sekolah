@@ -45,7 +45,7 @@ const carousel = (id, items) => `<div class="arrows" style="justify-content:flex
 
 function applyBrand() {
   const s = S.settings;
-  const r = document.documentElement.style;
+  const r = document.body.style;
   if (hex(s.warnaUtama)) { r.setProperty("--pri", hex(s.warnaUtama)); $('meta[name="theme-color"]').content = hex(s.warnaUtama); }
   if (hex(s.warnaAksen)) r.setProperty("--acc", hex(s.warnaAksen));
   document.title = s.nama + " – " + (s.tagline || "Website Resmi");
@@ -54,13 +54,25 @@ function applyBrand() {
   const logo = safeUrl(s.logo);
   $(".brand-logo").innerHTML = `<img src="${esc(logo || LOGO)}" alt="Logo">`;
   const wa = waLink(s.wa);
+  const sv = {
+    Facebook: '<path d="M14 8h3V4h-3a4 4 0 0 0-4 4v2H7v4h3v8h4v-8h3l1-4h-4V8z"/>',
+    Instagram: '<rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17" cy="7" r=".8"/>',
+    YouTube: '<rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M10.5 9.5v5l4.5-2.5z"/>'
+  };
   const sosmed = [["Facebook", s.facebook], ["Instagram", s.instagram], ["YouTube", s.youtube]]
-    .filter(([, u]) => safeLink(u)).map(([n, u]) => `<li><a href="${esc(safeLink(u))}" target="_blank" rel="noopener">${n}</a></li>`).join("");
+    .filter(([, u]) => safeLink(u)).map(([n, u]) => `<a class="soc" href="${esc(safeLink(u))}" target="_blank" rel="noopener" aria-label="${n}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${sv[n]}</svg></a>`).join("");
+  const fi = (ic, t1, t2) => `<div class="fi"><span class="fic">${ic}</span><div><b>${esc(t1)}</b>${t2 ? `<span>${esc(t2)}</span>` : ""}</div></div>`;
+  const I = {
+    pin: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.500a2.5 2.5 0 0 1 0 5z"/></svg>',
+    tel: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.600 10.800a15 15 0 0 0 6.600 6.600l2.200-2.200a1 1 0 0 1 1-.25 11 11 0 0 0 3.500.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.500a1 1 0 0 1 1 1c0 1.200.2 2.400.56 3.500a1 1 0 0 1-.25 1z"/></svg>',
+    web: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.500 3 14 0 18M12 3c-3 3.500-3 14 0 18"/></svg>'
+  };
   $("#footer").innerHTML = `<div class="wrap"><div class="foot">
-    <div><h4>${esc(s.nama)}</h4><p>${esc(s.tagline || "")}</p>${s.alamat ? `<p class="small">${esc(s.alamat)}</p>` : ""}</div>
-    <div><h4>Menu</h4><ul><li><a href="#/profil">Profil Madrasah</a></li><li><a href="#/guru">Guru & Staf</a></li><li><a href="#/berita">Berita</a></li><li><a href="#/galeri">Galeri</a></li><li><a href="#/pengumuman">Pengumuman</a></li><li><a href="#/ppdb">PPDB</a></li><li><a href="presensi.html">Presensi Guru</a></li></ul></div>
-    <div><h4>Hubungi Kami</h4><ul>${s.telp ? `<li>☎ ${esc(s.telp)}</li>` : ""}${wa ? `<li><a href="${wa}" target="_blank" rel="noopener">WhatsApp</a></li>` : ""}${s.email ? `<li>✉ ${esc(s.email)}</li>` : ""}${sosmed}</ul></div>
-  </div><div class="copy">© ${new Date().getFullYear()} ${esc(s.nama)}. Hak cipta dilindungi.</div></div>`;
+    ${fi(I.pin, s.nama, s.alamat)}
+    ${fi(I.tel, "Kontak & Info", [s.telp, wa ? "WA " + s.wa : ""].filter(Boolean).join(" · "))}
+    ${fi(I.web, "Media Sosial & Email", s.email)}
+    <div class="socs">${sosmed}</div>
+  </div><div class="copy"><span>${esc(s.nama)}${s.alamat ? " · " + esc(clip(s.alamat, 60)) : ""}</span><span>© ${new Date().getFullYear()} ${esc(s.nama)}. Hak cipta dilindungi.</span></div></div>`;
 }
 
 /* ---------- Komponen ---------- */
@@ -76,33 +88,48 @@ const galCard = g => `<a class="gal-card" href="#" data-gal="${esc(safeUrl(g.fot
 function heroSlides() {
   const s = S.settings;
   const sl = [...(S.slider || [])].sort(byUrut);
-  if (sl.length) return sl.map(x => ({ judul: x.judul, sub: x.sub, gambar: x.gambar }));
+  if (sl.length) return sl.map(x => ({ judul: x.judul, sub: x.sub, gambar: x.gambar || s.heroGambar }));
   return [{ judul: s.heroJudul, sub: s.heroSub, gambar: s.heroGambar }];
 }
+const dateBlock = d => { const t = String(d || ""); const dt = new Date(t.length <= 10 ? t + "T00:00:00" : t); return isNaN(dt) ? "" : `<span class="d1">${dt.getDate()} ${["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][dt.getMonth()]}</span><span class="d2">${dt.getFullYear()}</span>`; };
+const newsRow = b => `<a class="ni" href="#/berita/${esc(b.id)}"><div class="nd"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>${dateBlock(b.tanggal)}</div>
+  <div class="nt"><h3>${esc(b.judul)}</h3><p>${esc(b.ringkasan || clip(b.isi, 110))}</p></div>${safeUrl(b.gambar) ? `<div class="nth">${img(b.gambar, b.judul)}</div>` : ""}</a>`;
 async function pgBeranda() {
   await need(["slider", "program"]); await need(["berita", "pengumuman", "galeri"], 8);
   const s = S.settings;
   const slides = heroSlides();
+  const wa = waLink(s.wa);
+  const prog = [...S.program].sort(byUrut).slice(0, 3);
   const stats = [["statSiswa", "Peserta Didik", "🎒"], ["statGuru", "Guru & Staf", "👩‍🏫"], ["statRombel", "Rombongan Belajar", "🏫"], ["statEkskul", "Ekstrakurikuler", "🏅"]]
     .filter(([k]) => String(s[k] || "").trim());
   const gal = [...S.galeri].sort(byTgl).slice(0, 8);
+  const berita = [...S.berita].sort(byTgl).slice(0, 3);
   return `
-  <section class="hero"><div class="hero-stage">${slides.map((x, i) => `<div class="hslide ${i ? "" : "on"}" ${safeUrl(x.gambar) ? `style="background-image:url('${esc(safeUrl(x.gambar))}')"` : ""}><div class="wrap hs-in"><div>
-      <span class="pill-badge"><i></i>${s.ppdbBuka ? "PPDB " + esc(s.ppdbTahun) + " Dibuka" : esc(s.nama)}</span>
-      <h1>${esc(x.judul)}</h1><p>${esc(x.sub || "")}</p>
-      <div class="cta"><a class="btn btn-acc" href="#/ppdb">Daftar PPDB</a><a class="btn btn-glass" href="#/profil">Kenali Kami</a></div></div></div></div>`).join("")}
-    ${slides.length > 1 ? `<div class="dots">${slides.map((_, i) => `<button data-dot="${i}" class="${i ? "" : "on"}" aria-label="Slide ${i + 1}"></button>`).join("")}</div>` : ""}</div></section>
+  <section class="hero2"><div class="h2stage">${slides.map((x, i) => `<div class="h2slide ${i ? "" : "on"}"><div class="wrap h2in"><div class="h2txt">
+      <h1>${esc(x.judul)}</h1>${s.tagline ? `<p class="h2sub">${esc(s.tagline)}</p>` : ""}<p class="h2p">${esc(x.sub || "")}</p>
+      <div class="cta"><a class="btn btn-ok" href="#/ppdb">DAFTAR ONLINE</a><a class="btn btn-outl" href="#/profil">JELAJAHI PROFIL</a></div></div></div>
+      <div class="h2img">${safeUrl(x.gambar) ? `<img src="${esc(safeUrl(x.gambar))}" alt="">` : `<div class="h2ph"><img src="${LOGO}" alt=""></div>`}${wa ? `<a class="h2wa" href="${wa}" target="_blank" rel="noopener" aria-label="WhatsApp">📞</a>` : ""}</div></div>`).join("")}</div>
+    ${slides.length > 1 ? `<div class="dots">${slides.map((_, i) => `<button data-dot="${i}" class="${i ? "" : "on"}" aria-label="Slide ${i + 1}"></button>`).join("")}</div>` : ""}</section>
+  <div class="wrap"><div class="feat">${prog.map((p, i) => `<div class="fcard">${i === 0 ? `<h3 class="ftit">Unggulan Kami</h3>` : ""}<span class="fnum n${i + 1}">${i + 1}.</span><b>${i + 1}. ${esc(p.judul)}</b></div>`).join("")}</div></div>
+  <section class="section"><div class="wrap">
+    <div class="sec-head"><div><h2>Berita & Agenda Terbaru</h2></div><a class="link-arrow" href="#/berita">Semua berita →</a></div>
+    ${berita.length ? `<div class="nl">${berita.map(newsRow).join("")}</div>` : empty("Belum ada berita.")}</div></section>
   ${stats.length ? `<div class="wrap"><div class="stats">${stats.map(([k, l, ic]) => `<div class="stat"><div class="ic">${ic}</div><div><b>${esc(s[k])}</b><span>${l}</span></div></div>`).join("")}</div></div>` : ""}
   <section class="section"><div class="wrap"><div class="sambutan"><div class="fw"><div class="foto">${img(s.sambutanFoto, s.sambutanNama, "👤")}</div>
     <div class="cap">${s.kepala ? `<b>${esc(s.kepala)}</b>` : ""}<span>${esc(s.sambutanNama)}</span></div></div>
     <div><span class="eyebrow-l">Sambutan</span><h2>${esc(s.sambutanJudul)}</h2>${nl2p(clip(s.sambutanTeks, 700))}<div class="acts"><a class="btn" href="#/profil">Profil Madrasah</a><a class="link-arrow" href="#/kontak">Hubungi Kami →</a></div></div></div></div></section>
-  <section class="section alt"><div class="wrap">${secHead("Kabar Terbaru", "Berita Madrasah", "Semua berita", "#/berita")}
-    ${S.berita.length ? carousel("c-berita", [...S.berita].sort(byTgl).map(cardBerita).join("")) : empty("Belum ada berita.")}</div></section>
-  <section class="section"><div class="wrap">${annPanel([...S.pengumuman].sort(byTgl).slice(0, 4))}<p style="text-align:center;margin-top:18px"><a class="link-arrow" href="#/pengumuman">Lihat semua pengumuman →</a></p></div></section>
-  <section class="section alt"><div class="wrap"><div class="sec-center"><span class="eyebrow-l">Keunggulan Kami</span><h2>Program Unggulan</h2><p>Kegiatan yang membentuk karakter dan prestasi peserta didik</p></div>
+  <section class="section alt"><div class="wrap">${annPanel([...S.pengumuman].sort(byTgl).slice(0, 4))}<p style="text-align:center;margin-top:18px"><a class="link-arrow" href="#/pengumuman">Lihat semua pengumuman →</a></p></div></section>
+  <section class="section"><div class="wrap"><div class="sec-center"><span class="eyebrow-l">Keunggulan Kami</span><h2>Program Unggulan</h2><p>Kegiatan yang membentuk karakter dan prestasi peserta didik</p></div>
     <div class="grid g4">${[...S.program].sort(byUrut).map(p => `<div class="card prog"><div class="ic">${esc(p.ikon || "⭐")}</div><h3>${esc(p.judul)}</h3><p class="muted small" style="margin:0">${esc(p.deskripsi)}</p></div>`).join("")}</div></div></section>
-  ${gal.length ? `<section class="section dark-sec"><div class="wrap">${secHead("Dokumentasi", "Galeri Kegiatan", "Lihat semua", "#/galeri").replace('class="link-arrow"', 'class="link-arrow" style="color:var(--acc)"')}
+  ${gal.length ? `<section class="section alt"><div class="wrap">${secHead("Dokumentasi", "Galeri Kegiatan", "Lihat semua", "#/galeri")}
     ${carousel("c-gal", gal.map(galCard).join(""))}</div></section>` : ""}`;
+}
+
+async function pgProgram() {
+  await need(["program", "fasilitas"]);
+  return pageHead("Madrasah", "Program & Fasilitas", "Kegiatan unggulan dan sarana belajar") + `<section class="section"><div class="wrap">
+    <div class="grid g4">${[...S.program].sort(byUrut).map(p => `<div class="card prog"><div class="ic">${esc(p.ikon || "⭐")}</div><h3>${esc(p.judul)}</h3><p class="muted small" style="margin:0">${esc(p.deskripsi)}</p></div>`).join("")}</div>
+    <h2 style="margin-top:46px">Sarana & Fasilitas</h2><div class="grid g3">${[...S.fasilitas].sort(byUrut).map(f => `<figure class="fas" style="margin:0">${img(f.foto, f.nama, "🏫")}<figcaption>${esc(f.nama)}</figcaption></figure>`).join("")}</div></div></section>`;
 }
 
 async function pgProfil() {
@@ -244,7 +271,7 @@ function bind(route) {
     submitForm(e.target, "pesan", "#kontak-msg", d => ({ nama: t(d.nama), email: t(d.email), telp: t(d.telp), subjek: t(d.subjek), pesan: t(d.pesan), dibaca: false }),
       "Terima kasih, pesan Anda sudah kami terima."); });
   // hero slider
-  const sl = $$(".hslide"), dots = $$("[data-dot]");
+  const sl = $$(".h2slide"), dots = $$("[data-dot]");
   if (sl.length > 1) {
     let i = 0;
     const go = n => { i = (n + sl.length) % sl.length; sl.forEach((x, k) => x.classList.toggle("on", k === i)); dots.forEach((x, k) => x.classList.toggle("on", k === i)); };
@@ -292,7 +319,7 @@ let seq = 0;
 async function render() {
   const my = ++seq; clearInterval(timer);
   const [route = "", id] = location.hash.replace(/^#\/?/, "").split("/");
-  const pages = { "": pgBeranda, profil: pgProfil, guru: pgGuru, berita: () => pgBerita(id), galeri: pgGaleri, pengumuman: () => pgPengumuman(id), ppdb: pgPpdb, kontak: pgKontak };
+  const pages = { "": pgBeranda, profil: pgProfil, program: pgProgram, guru: pgGuru, berita: () => pgBerita(id), galeri: pgGaleri, pengumuman: () => pgPengumuman(id), ppdb: pgPpdb, kontak: pgKontak };
   const app = $("#app");
   if (!app.firstElementChild || app.querySelector(".loading")) app.innerHTML = `<div class="loading">Memuat…</div>`;
   let html;

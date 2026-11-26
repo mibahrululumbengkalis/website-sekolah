@@ -7,7 +7,7 @@ export const DEFAULT_SETTINGS = {
   heroSub: "Selamat datang di website resmi MI Bahrul Ulum. Temukan informasi madrasah, kegiatan, pengumuman, dan pendaftaran peserta didik baru.",
   heroGambar: "",
   subjudul: "Madrasah Ibtidaiyah",
-  warnaUtama: "#0f6b4f", warnaAksen: "#f5b82e",
+  warnaUtama: "#1b4398", warnaAksen: "#f5b82e",
   logo: "",
   sambutanNama: "Kepala Madrasah",
   sambutanJudul: "Mewujudkan Pendidikan Dasar yang Islami dan Berkualitas",
