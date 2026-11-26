@@ -345,5 +345,6 @@ $("#burger").addEventListener("click", () => { const o = $("#nav").classList.tog
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 
 window.addEventListener("scroll", () => document.body.classList.toggle("scrolled", window.scrollY > 24), { passive: true });
+document.addEventListener("click", e => { const a = e.target.closest(".dd-menu a"); if (a) { a.blur(); const d = a.closest(".dd"); d.classList.add("closing"); setTimeout(() => d.classList.remove("closing"), 400); } });
 window.addEventListener("hashchange", render);
 loadSettings().then(() => { applyBrand(); render(); });
