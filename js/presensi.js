@@ -18,7 +18,7 @@ function viewLogin(msg = "") {
     <label class="f">Kata sandi<input type="password" name="pw" required autocomplete="current-password"></label>
     <button class="btn" type="submit">Masuk</button><div id="login-msg">${msg}</div>
     <button class="btn btn-ghost btn-sm" type="button" id="forgot">Lupa kata sandi</button></form>
-    <p style="margin:14px 0 0"><a href="index.html">← Ke website</a></p></div></div>`;
+    </div></div>`;
   $("#f-login").addEventListener("submit", async e => {
     e.preventDefault(); const f = e.target, b = f.querySelector("button[type=submit]"); b.disabled = true;
     try { await signInWithEmailAndPassword(auth, f.email.value.trim(), f.pw.value); }
