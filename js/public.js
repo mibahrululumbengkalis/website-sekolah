@@ -115,7 +115,7 @@ async function pgBeranda() {
   <section class="hero2">${DECOR}<div class="h2stage">${slides.map((x, i) => `<div class="h2slide ${i ? "" : "on"}"><div class="wrap h2in"><div class="h2txt">
       <h1>${esc(x.judul)}</h1>${(s.heroTagline || s.tagline) ? `<p class="h2sub">${esc(s.heroTagline || s.tagline)}</p>` : ""}<p class="h2p">${esc(x.sub || "")}</p>
       <div class="cta"><a class="btn btn-ok" href="#/ppdb">DAFTAR ONLINE</a><a class="btn btn-outl" href="#/profil">JELAJAHI PROFIL</a></div></div></div>
-      <div class="h2img"><img src="${esc(safeUrl(x.gambar) || BANNER)}" alt="Suasana madrasah">${wa ? `<a class="h2wa" href="${wa}" target="_blank" rel="noopener" aria-label="WhatsApp">📞</a>` : ""}</div></div>`).join("")}</div>
+      <div class="h2img"><div class="h2pic"><img src="${esc(safeUrl(x.gambar) || BANNER)}" alt="Suasana madrasah"></div>${wa ? `<a class="h2wa" href="${wa}" target="_blank" rel="noopener" aria-label="WhatsApp">📞</a>` : ""}</div></div>`).join("")}</div>
     ${slides.length > 1 ? `<div class="dots">${slides.map((_, i) => `<button data-dot="${i}" class="${i ? "" : "on"}" aria-label="Slide ${i + 1}"></button>`).join("")}</div>` : ""}</section>
   <div class="wrap"><div class="feat">${prog.map((p, i) => `<div class="fcard">${i === 0 ? `<h3 class="ftit">Unggulan Kami</h3>` : ""}<span class="fnum n${i + 1}">${i + 1}.</span><b>${i + 1}. ${esc(p.judul)}</b></div>`).join("")}</div></div>
   <section class="section"><div class="wrap">
@@ -328,6 +328,7 @@ async function render() {
   const [route = "", id] = location.hash.replace(/^#\/?/, "").split("/");
   const pages = { "": pgBeranda, profil: pgProfil, program: pgProgram, guru: pgGuru, berita: () => pgBerita(id), galeri: pgGaleri, pengumuman: () => pgPengumuman(id), ppdb: pgPpdb, kontak: pgKontak };
   const app = $("#app");
+  document.body.classList.toggle("home", route === "");
   if (!app.firstElementChild || app.querySelector(".loading")) app.innerHTML = `<div class="loading">Memuat…</div>`;
   let html;
   try { html = await (pages[route] || pgBeranda)(); }
@@ -348,5 +349,6 @@ $("#install").addEventListener("click", async () => { if (!deferred) return; def
 $("#burger").addEventListener("click", () => { const o = $("#nav").classList.toggle("open"); $("#burger").setAttribute("aria-expanded", o); });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 
+window.addEventListener("scroll", () => document.body.classList.toggle("scrolled", window.scrollY > 24), { passive: true });
 window.addEventListener("hashchange", render);
 loadSettings().then(() => { applyBrand(); render(); });
