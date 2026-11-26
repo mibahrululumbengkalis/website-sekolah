@@ -1,7 +1,7 @@
 // Modul akademik & keuangan: Siswa/Kelas, Presensi siswa, Nilai & Rapor, Keuangan.
 // Semua data bersifat privat (hanya admin) lewat firestore.rules.
 import {
-  db, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, writeBatch, listCol
+  db, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, writeBatch, listCol, createStaffAccount
 } from "./firebase.js";
 import { $, $$, esc, safeUrl, toast, today, fmtDate, compressImage } from "./util.js";
 
@@ -57,6 +57,16 @@ const optRombel = list => [["", "— Pilih rombel —"], ...[...list].sort(byUru
 const selHTML = (id, opts, val = "") => `<select id="${id}" style="margin:0;width:auto;min-width:150px">${opts.map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(val) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
 const chunk = (arr, n) => { const o = []; for (let i = 0; i < arr.length; i += n) o.push(arr.slice(i, i + n)); return o; };
 const wibToday = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Jakarta" }).format(new Date());
+
+// Salin presensi satu rombel/tanggal ke dokumen per-anak yang dapat dibaca orang tua (tanpa data siswa lain)
+export async function konfirmasiPresensi(rid, tgl, sl, data, cat) {
+  for (const part of chunk(sl, 200)) {
+    const b = writeBatch(db);
+    part.forEach(s => b.set(doc(db, "presensi_ortu", `${s.id}_${tgl}`), { siswaId: s.id, rombelId: rid, tanggal: tgl, status: data[s.id] || "H", catatan: (cat && cat[s.id]) || "", updatedAt: serverTimestamp() }));
+    await b.commit();
+  }
+  await updateDoc(doc(db, "presensi_siswa", `${rid}_${tgl}`), { konfirmasi: true, updatedAt: serverTimestamp() });
+}
 
 export function akademikTabs(ctx) {
   const { fieldHTML, readForm, modal, errMsg, wireImages } = ctx;
@@ -247,9 +257,10 @@ export function akademikTabs(ctx) {
         out.innerHTML = `<p class="muted">${old ? "Presensi sudah tersimpan; perubahan memerlukan alasan." : "Belum ada presensi untuk tanggal ini (pilihan awal: Hadir)."}</p>
           <div class="tbl-wrap">${sl.length ? `<table class="t"><thead><tr><th>No</th><th>Nama</th>${ST.map(([k, l]) => `<th>${l}</th>`).join("")}<th>Catatan</th></tr></thead><tbody>
           ${sl.map((s, i) => `<tr><td>${i + 1}</td><td>${esc(s.nama)}</td>${ST.map(([k]) => `<td><input type="radio" name="st_${esc(s.id)}" value="${k}" ${(data[s.id] || "H") === k ? "checked" : ""} style="margin:0"></td>`).join("")}<td><input name="ct_${esc(s.id)}" value="${esc(cat[s.id] || "")}" maxlength="120" style="margin:0;min-width:140px"></td></tr>`).join("")}</tbody></table>` : `<div class="empty" style="border:0">Belum ada siswa aktif di rombel ini.</div>`}</div>
-          <div class="acts" style="margin-top:14px"><button class="btn btn-ghost" id="allh">Semua hadir</button><button class="btn" id="save" ${sl.length ? "" : "disabled"}>Simpan presensi</button></div>
+          <div class="acts" style="margin-top:14px"><button class="btn btn-ghost" id="allh">Semua hadir</button><button class="btn" id="save" ${sl.length ? "" : "disabled"}>Simpan presensi</button>${old && sl.length ? `<button class="btn btn-ghost" id="konf">${old.konfirmasi ? "Perbarui konfirmasi ke orang tua" : "Konfirmasi ke orang tua"}</button>` : ""}</div>
           ${old && (old.koreksi || []).length ? `<h3 style="margin-top:22px">Riwayat koreksi</h3><div class="tbl-wrap"><table class="t"><thead><tr><th>Waktu</th><th>Siswa</th><th>Perubahan</th><th>Alasan</th></tr></thead><tbody>${old.koreksi.map(k => `<tr><td>${esc(fmtDate(k.waktu))}</td><td>${esc(k.nama)}</td><td>${esc(k.dari)} → ${esc(k.ke)}</td><td>${esc(k.alasan)}</td></tr>`).join("")}</tbody></table></div>` : ""}`;
         $("#allh").onclick = () => $$("input[type=radio][value=H]", out).forEach(x => x.checked = true);
+        const kf = $("#konf"); if (kf) kf.onclick = async () => { if (!confirm("Tampilkan presensi tersimpan ini kepada orang tua masing-masing siswa?")) return; try { await konfirmasiPresensi(rid, tgl, sl, data, cat); toast("Presensi dikonfirmasi ke orang tua"); $("#go").click(); } catch (e) { logErr(e); } };
         $("#save").onclick = async () => {
           const nd = {}, nc = {};
           sl.forEach(s => { nd[s.id] = (out.querySelector(`input[name="st_${s.id}"]:checked`) || {}).value || "H"; const t = (out.querySelector(`input[name="ct_${s.id}"]`) || {}).value.trim(); if (t) nc[s.id] = t; });
@@ -470,5 +481,104 @@ export function akademikTabs(ctx) {
     $("#go").onclick = draw; draw();
   }
 
-  return { akad, siswa, naik, absen, rekapSiswa, nilai, rapor, kas, realisasi };
+
+  /* ================= Persetujuan Rapor (kepala madrasah / admin) ================= */
+  async function persetujuan(main) {
+    const [rombel, c] = await Promise.all([listCol("rombel"), cfg()]);
+    const rm = Object.fromEntries(rombel.map(r => [r.id, r.nama]));
+    const all = (await listCol("rapor")).filter(r => r.tapel === c.tapel && r.semester === c.semester);
+    const wait = all.filter(r => r.status === "diperiksa").sort((a, b) => String(a.rombelNama).localeCompare(String(b.rombelNama), "id", { numeric: true }) || byNama(a, b));
+    const cnt = st => all.filter(r => r.status === st).length;
+    main.innerHTML = `<div class="top"><h1>Persetujuan Rapor</h1></div><p class="muted small">${esc(c.tapel)} · Semester ${esc(c.semester)} — Draf: ${cnt("draf")} · Menunggu persetujuan: ${cnt("diperiksa")} · Dipublikasikan: ${cnt("publikasi")}</p>
+      <div class="tbl-wrap">${wait.length ? `<table class="t"><thead><tr><th>Rombel</th><th>Nama</th><th>Mapel bernilai</th><th>Sikap</th><th></th></tr></thead><tbody>${wait.map(r => `<tr><td>${esc(r.rombelNama || rm[r.rombelId] || "")}</td><td>${esc(r.nama)}</td><td>${(r.nilai || []).length}</td><td>${esc(r.sikap || "")}</td><td><button class="btn btn-sm" data-p="${esc(r.id)}">Publikasikan</button></td></tr>`).join("")}</tbody></table>` : `<div class="empty" style="border:0">Tidak ada rapor yang menunggu persetujuan.</div>`}</div>
+      ${wait.length ? `<p style="margin-top:14px"><button class="btn" id="pall">Publikasikan semua (${wait.length})</button></p>` : ""}`;
+    const pub = async ids => { for (const part of chunk(ids, 200)) { const b = writeBatch(db); part.forEach(id => b.update(doc(db, "rapor", id), { status: "publikasi", updatedAt: serverTimestamp() })); await b.commit(); } };
+    main.onclick = async e => {
+      const b = e.target.closest("[data-p]");
+      try {
+        if (b) { await pub([b.dataset.p]); toast("Dipublikasikan"); await persetujuan(main); }
+        else if (e.target.id === "pall" && confirm(`Publikasikan ${wait.length} rapor? Setelah dipublikasikan, orang tua dapat melihatnya.`)) { await pub(wait.map(r => r.id)); toast("Dipublikasikan"); await persetujuan(main); }
+      } catch (err) { logErr(err); }
+    };
+  }
+
+  /* ================= Laporan ringkas lintas modul ================= */
+  async function laporan(main) {
+    const [c] = await Promise.all([cfg()]);
+    const safe = async f => { try { return await f(); } catch { return null; } };
+    const [rombel, siswaAll, rapor, kasAll, hadirGuru] = await Promise.all([safe(() => listCol("rombel")), safe(() => listCol("siswa")), safe(() => listCol("rapor")), safe(() => listCol("kas")), safe(async () => { const { query, where, getDocs } = await import("./firebase.js"); return (await getDocs(query(collection(db, "presensi"), where("tanggal", "==", wibToday())))).docs.map(d => d.data()); })]);
+    const miss = x => x === null ? `<span class="muted small">Tidak ada akses / gagal memuat</span>` : "";
+    const aktif = (siswaAll || []).filter(s => (s.status || "aktif") === "aktif");
+    const rm = (rombel || []).sort(byUrut);
+    const rap = (rapor || []).filter(r => r.tapel === c.tapel && r.semester === c.semester);
+    const ym = wibToday().slice(0, 7);
+    const sign = r => (r.jenis === "Penerimaan" ? 1 : -1) * (Number(r.jumlah) || 0);
+    const bln = (kasAll || []).filter(r => String(r.tanggal).slice(0, 7) === ym);
+    const tin = bln.filter(r => r.jenis === "Penerimaan").reduce((s, r) => s + (Number(r.jumlah) || 0), 0), tout = bln.filter(r => r.jenis === "Pengeluaran").reduce((s, r) => s + (Number(r.jumlah) || 0), 0);
+    const saldo = (kasAll || []).reduce((s, r) => s + sign(r), 0);
+    const gs = st => (hadirGuru || []).filter(x => x.status === st).length;
+    main.innerHTML = `<div class="top"><h1>Laporan Ringkas</h1></div><p class="muted small">Tahun pelajaran ${esc(c.tapel)} · Semester ${esc(c.semester)} · ${esc(fmtDate(wibToday()))}</p>
+      <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))"><div class="kpi"><b>${aktif.length}</b><span>Siswa aktif</span></div><div class="kpi"><b>${rm.length}</b><span>Rombel</span></div><div class="kpi"><b style="font-size:1.2rem">${rp(saldo)}</b><span>Saldo kas</span></div><div class="kpi"><b>${(hadirGuru || []).length}</b><span>Presensi guru hari ini</span></div></div>
+      <div class="settings-grp"><h3>Siswa & status rapor per rombel</h3>${miss(siswaAll)}<div class="tbl-wrap"><table class="t"><thead><tr><th>Rombel</th><th>Wali kelas</th><th>Siswa</th><th>L</th><th>P</th><th>Draf</th><th>Diperiksa</th><th>Publikasi</th></tr></thead><tbody>${rm.map(r => { const ss = aktif.filter(s => s.rombelId === r.id), rr = rap.filter(x => x.rombelId === r.id); return `<tr><td>${esc(r.nama)}</td><td>${esc(r.waliKelas || "–")}</td><td>${ss.length}</td><td>${ss.filter(s => s.jk === "Laki-laki").length}</td><td>${ss.filter(s => s.jk === "Perempuan").length}</td><td>${rr.filter(x => x.status === "draf").length}</td><td>${rr.filter(x => x.status === "diperiksa").length}</td><td>${rr.filter(x => x.status === "publikasi").length}</td></tr>`; }).join("") || `<tr><td colspan="8" class="muted">Belum ada rombel.</td></tr>`}</tbody></table></div></div>
+      <div class="settings-grp"><h3>Keuangan bulan ini</h3>${miss(kasAll)}<p style="margin:0">Penerimaan <b>${rp(tin)}</b> · Pengeluaran <b>${rp(tout)}</b> · Saldo kas keseluruhan <b>${rp(saldo)}</b></p></div>
+      <div class="settings-grp"><h3>Presensi guru hari ini</h3>${miss(hadirGuru)}<p style="margin:0">Hadir ${gs("hadir")} · Izin ${gs("izin")} · Sakit ${gs("sakit")} · Dinas luar ${gs("dinas")}</p></div>`;
+  }
+
+  /* ================= Akun Orang Tua / Wali ================= */
+  async function wali(main) {
+    const [rows, siswaAll, rombel] = await Promise.all([listCol("wali"), listCol("siswa"), listCol("rombel")]);
+    rows.sort(byNama);
+    const rm = Object.fromEntries(rombel.map(r => [r.id, r.nama])); const sm = Object.fromEntries(siswaAll.map(x => [x.id, x]));
+    main.innerHTML = `<div class="top"><h1>Akun Orang Tua / Wali</h1><div class="acts"><button class="btn btn-ghost" id="sync" title="Perbarui rombel tiap anak setelah kenaikan kelas">Sinkronkan rombel</button><button class="btn" id="add">+ Tambah akun</button></div></div>
+      <p class="muted small">Operator membuat akun (email + sandi awal) dan menautkan ke anak. Orang tua login di halaman masuk dan hanya melihat data anak yang ditautkan.</p>
+      <div class="tbl-wrap">${rows.length ? `<table class="t"><thead><tr><th>Nama</th><th>Email</th><th>Anak</th><th>Status</th><th></th></tr></thead><tbody>${rows.map(w => `<tr><td>${esc(w.nama)}</td><td>${esc(w.email || "")}</td><td>${(w.anak || []).map(id => esc(sm[id] ? sm[id].nama + " (" + (rm[sm[id].rombelId] || "–") + ")" : "(dihapus)")).join(", ") || "–"}</td><td>${w.aktif ? '<span class="pill diterima">Aktif</span>' : '<span class="pill ditolak">Nonaktif</span>'}</td>
+      <td><div class="acts"><button class="btn btn-ghost btn-sm" data-e="${esc(w.id)}">Ubah</button><button class="btn btn-ghost btn-sm" data-r="${esc(w.id)}">Reset sandi</button></div></td></tr>`).join("")}</tbody></table>` : `<div class="empty" style="border:0">Belum ada akun orang tua.</div>`}</div>`;
+    const picker = (sel) => `<div class="f"><b>Anak yang ditautkan</b><div class="acts" style="margin:6px 0">${selHTML("pr", [["", "Semua rombel"], ...[...rombel].sort(byUrut).map(r => [r.id, r.nama])])}<input id="pq" placeholder="Cari nama…" style="margin:0;width:160px"></div><div id="pl" style="max-height:200px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px"></div><p class="muted small" id="pc" style="margin:6px 0 0"></p></div>`;
+    const wirePicker = (m, sel) => {
+      const draw = () => {
+        const rid = m.querySelector("#pr").value, q = m.querySelector("#pq").value.trim().toLowerCase();
+        const l = siswaAll.filter(x => (x.status || "aktif") === "aktif" && (!rid || x.rombelId === rid) && (!q || String(x.nama).toLowerCase().includes(q))).sort(byNama).slice(0, 150);
+        m.querySelector("#pl").innerHTML = l.map(x => `<label style="display:flex;gap:8px;align-items:center;margin:3px 0;font-weight:500"><input type="checkbox" data-s="${esc(x.id)}" ${sel.has(x.id) ? "checked" : ""} style="margin:0">${esc(x.nama)} <span class="muted small">${esc(rm[x.rombelId] || "–")}</span></label>`).join("") || `<span class="muted small">Tidak ada siswa.</span>`;
+        m.querySelector("#pc").textContent = `${sel.size} anak dipilih: ` + [...sel].map(id => sm[id] ? sm[id].nama : "?").join(", ");
+      };
+      m.querySelector("#pr").onchange = draw; m.querySelector("#pq").oninput = draw;
+      m.querySelector("#pl").onchange = e => { const i = e.target.closest("input[data-s]"); if (!i) return; i.checked ? sel.add(i.dataset.s) : sel.delete(i.dataset.s); draw(); };
+      draw();
+    };
+    const akses = sel => ({ anak: [...sel], rombelAkses: [...new Set([...sel].map(id => sm[id] && sm[id].rombelId).filter(Boolean))] });
+    $("#add").onclick = () => {
+      const sel = new Set();
+      const m = modal(`<h3>Tambah akun orang tua/wali</h3><form class="form" id="f-w"><label class="f">Nama orang tua/wali <span class="req">*</span><input name="nama" required maxlength="100"></label>
+        <label class="f">Email <span class="req">*</span><input type="email" name="email" required></label><label class="f">Kata sandi awal (min. 8 karakter) <span class="req">*</span><input type="text" name="pw" required minlength="8" autocomplete="off"></label>
+        ${picker(sel)}<div class="btns"><button type="button" class="btn btn-ghost" data-x>Batal</button><button class="btn" type="submit">Buat akun</button></div></form>`);
+      m.querySelector("[data-x]").onclick = () => m.remove(); wirePicker(m, sel);
+      m.querySelector("#f-w").onsubmit = async e => {
+        e.preventDefault(); const f = e.target, b = f.querySelector("button[type=submit]");
+        if (!sel.size) return toast("Pilih minimal satu anak", "err");
+        b.disabled = true; let uid = null;
+        try {
+          uid = await createStaffAccount(f.email.value.trim(), f.pw.value);
+          await setDoc(doc(db, "wali", uid), { nama: f.nama.value.trim(), email: f.email.value.trim(), aktif: true, ...akses(sel), createdAt: serverTimestamp() });
+          m.remove(); toast("Akun orang tua dibuat"); await wali(main);
+        } catch (err) { const code = err && err.code || ""; toast(code === "auth/email-already-in-use" ? "Email sudah terdaftar." : code === "auth/weak-password" ? "Kata sandi terlalu lemah." : errMsg(err), "err"); b.disabled = false; }
+      };
+    };
+    $("#sync").onclick = async () => {
+      try { for (const w of rows) { const sel = new Set(w.anak || []); await updateDoc(doc(db, "wali", w.id), akses(sel)); } toast("Rombel anak disinkronkan"); } catch (err) { logErr(err); }
+    };
+    main.onclick = async e => {
+      const be = e.target.closest("[data-e]"), br = e.target.closest("[data-r]");
+      if (br) { const w = rows.find(x => x.id === br.dataset.r); try { const { sendPasswordResetEmail, auth } = await import("./firebase.js"); await sendPasswordResetEmail(auth, w.email); toast("Tautan reset dikirim ke " + w.email); } catch { toast("Gagal mengirim tautan reset", "err"); } }
+      if (be) {
+        const w = rows.find(x => x.id === be.dataset.e); const sel = new Set(w.anak || []);
+        const m = modal(`<h3>Ubah akun orang tua</h3><form class="form" id="f-we"><label class="f">Nama<input name="nama" required maxlength="100" value="${esc(w.nama)}"></label><label class="f"><input type="checkbox" name="aktif" ${w.aktif ? "checked" : ""}>Akun aktif</label><p class="muted small" style="margin:0">Email: ${esc(w.email || "")}</p>${picker(sel)}
+          <div class="btns"><button type="button" class="btn btn-ghost" data-x>Batal</button><button class="btn" type="submit">Simpan</button></div></form>`);
+        m.querySelector("[data-x]").onclick = () => m.remove(); wirePicker(m, sel);
+        m.querySelector("#f-we").onsubmit = async ev => { ev.preventDefault(); const f = ev.target;
+          try { await updateDoc(doc(db, "wali", w.id), { nama: f.nama.value.trim(), aktif: f.aktif.checked, ...akses(sel) }); m.remove(); toast("Tersimpan"); await wali(main); } catch (err) { logErr(err); } };
+      }
+    };
+  }
+
+  return { laporan, persetujuan, wali, akad, siswa, naik, absen, rekapSiswa, nilai, rapor, kas, realisasi };
 }

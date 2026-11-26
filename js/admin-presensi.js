@@ -143,12 +143,14 @@ export function presensiTabs(ctx) {
   }
 
   /* ---- Akun guru ---- */
+  const PERAN = [["guru","Guru"],["kepala","Kepala Madrasah"],["bendahara","Bendahara"],["sarpras","Pengelola Sarpras"],["tendik","Tenaga Kependidikan"]];
+  const peranBox = sel => `<div class="f"><b>Peran</b><div style="margin-top:6px">${PERAN.map(([k, l]) => `<label style="display:inline-flex;gap:6px;align-items:center;margin:0 14px 6px 0;font-weight:500"><input type="checkbox" name="peran" value="${k}" ${(sel || []).includes(k) ? "checked" : ""} style="margin:0">${l}</label>`).join("")}</div><p class="muted small" style="margin:4px 0 0">Kepala/Bendahara/Pengelola Sarpras mendapat menu panel sesuai perannya. Guru dan wali kelas diatur lewat penugasan di bawah.</p></div>`;
   async function pegawai(main) {
     const rows = (await listCol("pegawai")).sort((a, b) => a.nama.localeCompare(b.nama));
-    main.innerHTML = `<div class="top"><h1>Akun Guru (Presensi)</h1><button class="btn" id="add">+ Tambah akun guru</button></div>
+    main.innerHTML = `<div class="top"><h1>Akun Pegawai</h1><button class="btn" id="add">+ Tambah akun pegawai</button></div>
       <p class="muted small">Setiap guru login di <code>guru.html</code> (portal guru; presensi tetap bisa lewat <code>presensi.html</code>) dengan email dan kata sandi di bawah. Gunakan email aktif milik guru agar fitur “Lupa kata sandi” berfungsi.</p>
-      <div class="tbl-wrap">${rows.length ? `<table class="t"><thead><tr><th>Nama</th><th>Jabatan</th><th>Email</th><th>Mulai</th><th>Status</th><th></th></tr></thead><tbody>
-      ${rows.map(p => `<tr><td>${esc(p.nama)}</td><td>${esc(p.jabatan || "")}</td><td>${esc(p.email || "")}</td><td>${esc(p.mulai ? tglID(p.mulai) : "")}</td><td>${p.aktif ? '<span class="pill diterima">Aktif</span>' : '<span class="pill ditolak">Nonaktif</span>'}</td>
+      <div class="tbl-wrap">${rows.length ? `<table class="t"><thead><tr><th>Nama</th><th>Jabatan</th><th>Peran</th><th>Email</th><th>Mulai</th><th>Status</th><th></th></tr></thead><tbody>
+      ${rows.map(p => `<tr><td>${esc(p.nama)}</td><td>${esc(p.jabatan || "")}</td><td>${esc((p.peran || []).join(", ") || "–")}</td><td>${esc(p.email || "")}</td><td>${esc(p.mulai ? tglID(p.mulai) : "")}</td><td>${p.aktif ? '<span class="pill diterima">Aktif</span>' : '<span class="pill ditolak">Nonaktif</span>'}</td>
         <td><div class="acts"><button class="btn btn-ghost btn-sm" data-e="${esc(p.id)}">Ubah</button><button class="btn btn-ghost btn-sm" data-r="${esc(p.id)}">Reset sandi</button></div></td></tr>`).join("")}
       </tbody></table>` : `<div class="empty" style="border:0">Belum ada akun guru.</div>`}</div>`;
     $("#add").onclick = () => {
@@ -158,6 +160,7 @@ export function presensiTabs(ctx) {
         <label class="f">Email <span class="req">*</span><input type="email" name="email" required></label>
         <label class="f">Kata sandi awal (min. 8 karakter) <span class="req">*</span><input type="text" name="pw" required minlength="8" autocomplete="off"></label>
         <label class="f">Mulai dihitung presensi sejak <span class="req">*</span><input type="date" name="mulai" required value="${wib().date}"></label>
+        ${peranBox(["guru"])}
         <p class="muted small" style="margin:0">Sampaikan kata sandi awal secara pribadi; guru dapat menggantinya lewat “Lupa kata sandi”.</p>
         <div class="btns"><button type="button" class="btn btn-ghost" data-x>Batal</button><button class="btn" type="submit">Buat akun</button></div></form>`);
       m.querySelector("[data-x]").onclick = () => m.remove();
@@ -166,7 +169,7 @@ export function presensiTabs(ctx) {
         let uid = null;
         try {
           uid = await createStaffAccount(f.email.value.trim(), f.pw.value);
-          await setDoc(doc(db, "pegawai", uid), { nama: f.nama.value.trim(), jabatan: f.jabatan.value.trim(), email: f.email.value.trim(), mulai: f.mulai.value, aktif: true });
+          await setDoc(doc(db, "pegawai", uid), { nama: f.nama.value.trim(), jabatan: f.jabatan.value.trim(), email: f.email.value.trim(), mulai: f.mulai.value, aktif: true, peran: [...f.querySelectorAll("input[name=peran]:checked")].map(x => x.value) });
           m.remove(); toast("Akun guru dibuat"); ctx.refresh();
         } catch (err) {
           const code = err && err.code || "";
@@ -191,6 +194,7 @@ export function presensiTabs(ctx) {
           <label class="f">Jabatan<input name="jabatan" maxlength="80" value="${esc(p.jabatan || "")}"></label>
           <label class="f">Mulai dihitung presensi<input type="date" name="mulai" value="${esc(p.mulai || "")}"></label>
           <label class="f"><input type="checkbox" name="aktif" ${p.aktif ? "checked" : ""}>Akun aktif (guru nonaktif tidak bisa presensi dan tidak masuk rekap)</label>
+          ${peranBox(p.peran)}
           <div class="f"><b>Wali kelas (boleh isi presensi siswa & melengkapi rapor)</b><div style="margin-top:6px">${ck("walas", rb, p.walas)}</div></div>
           <div class="f"><b>Mengajar mapel (boleh input nilai)</b><div style="margin-top:6px">${ck("ajarMapel", mp, p.ajarMapel)}</div><b style="display:block;margin-top:8px">di rombel</b><div style="margin-top:6px">${ck("ajarRombel", rb, p.ajarRombel)}</div>
           <p class="muted small" style="margin:6px 0 0">Guru mendapat hak input nilai untuk setiap kombinasi mapel × rombel yang dicentang.</p></div>
@@ -203,7 +207,7 @@ export function presensiTabs(ctx) {
           const walas = vals("walas"), ajarMapel = vals("ajarMapel"), ajarRombel = vals("ajarRombel");
           const ajar = ajarRombel.flatMap(r => ajarMapel.map(mm => r + "|" + mm));
           const rombelAkses = [...new Set([...walas, ...ajarRombel])];
-          try { await updateDoc(doc(db, "pegawai", p.id), { nama: f.nama.value.trim(), jabatan: f.jabatan.value.trim(), mulai: f.mulai.value, aktif: f.aktif.checked, walas, ajarMapel, ajarRombel, ajar, rombelAkses }); m.remove(); toast("Tersimpan"); ctx.refresh(); } catch (err) { toast(errMsg(err), "err"); }
+          try { await updateDoc(doc(db, "pegawai", p.id), { nama: f.nama.value.trim(), jabatan: f.jabatan.value.trim(), mulai: f.mulai.value, aktif: f.aktif.checked, walas, ajarMapel, ajarRombel, ajar, rombelAkses, peran: [...f.querySelectorAll("input[name=peran]:checked")].map(x => x.value) }); m.remove(); toast("Tersimpan"); ctx.refresh(); } catch (err) { toast(errMsg(err), "err"); }
         });
       }
     });

@@ -4,10 +4,10 @@ import {
   signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail
 } from "./firebase.js";
 import { $, $$, esc, toast, fmtDate } from "./util.js";
-import { cfg, akhir } from "./admin-akademik.js";
+import { cfg, akhir, konfirmasiPresensi } from "./admin-akademik.js";
 
 const root = $("#root");
-const S = { user: null, peg: null, rombel: {}, mapel: {}, c: null, tab: "home" };
+const S = { user: null, peg: null, wali: null, anak: [], rombel: {}, mapel: {}, c: null, tab: "home" };
 const KEY = t => String(t || "").replace(/[^0-9A-Za-z]+/g, "-");
 const wibToday = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Jakarta" }).format(new Date());
 const num = v => (v === "" || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
@@ -41,6 +41,7 @@ function viewMsg(title, text) {
 const walas = () => (S.peg.walas || []).filter(r => S.rombel[r]);
 const ajar = () => (S.peg.ajar || []).map(x => x.split("|")).filter(([r, m]) => S.rombel[r] && S.mapel[m]);
 function tabsList() {
+  if (S.wali) return [["home", "Anak Saya"], ["wpres", "Presensi Anak"], ["wrapor", "Rapor Anak"], ["winfo", "Informasi"]];
   const t = [["home", "Beranda"]];
   if (walas().length) t.push(["absen", "Presensi Siswa"]);
   if (ajar().length) t.push(["nilai", "Input Nilai"]);
@@ -48,18 +49,19 @@ function tabsList() {
   return t;
 }
 function frame() {
-  root.innerHTML = `<div class="pwrap"><div class="p-head"><div><h1>${esc(S.peg.nama)}</h1><small>${esc(S.peg.jabatan || "Guru")} · TP ${esc(S.c.tapel)} ${esc(S.c.semester)}</small></div><button class="btn btn-ghost btn-sm" id="out">Keluar</button></div>
+  root.innerHTML = `<div class="pwrap"><div class="p-head"><div><h1>${esc((S.wali || S.peg).nama)}</h1><small>${esc(S.wali ? "Orang tua / wali" : (S.peg.jabatan || "Guru"))} · TP ${esc(S.c.tapel)} ${esc(S.c.semester)}</small></div><button class="btn btn-ghost btn-sm" id="out">Keluar</button></div>
     <div class="gtabs">${tabsList().map(([k, l]) => `<button data-t="${k}" class="${S.tab === k ? "on" : ""}">${l}</button>`).join("")}</div><div id="gmain"></div></div>`;
   $("#out").onclick = () => signOut(auth);
   $$(".gtabs button").forEach(b => b.onclick = () => { S.tab = b.dataset.t; frame(); });
   const m = $("#gmain");
-  ({ home, absen, nilai, rapor }[S.tab] || home)(m).catch(e => { console.error(e); m.innerHTML = `<div class="alert warn">${esc(errText(e))}</div>`; });
+  ({ home: S.wali ? whome : home, absen, nilai, rapor, wpres, wrapor, winfo }[S.tab] || home)(m).catch(e => { console.error(e); m.innerHTML = `<div class="alert warn">${esc(errText(e))}</div>`; });
 }
 
 async function home(m) {
   const w = walas().map(r => S.rombel[r]), a = ajar();
   const grp = {}; a.forEach(([r, mm]) => { (grp[S.mapel[mm]] = grp[S.mapel[mm]] || []).push(S.rombel[r]); });
-  m.innerHTML = `<div class="gcard"><h3>Presensi guru</h3><p class="muted small" style="margin-top:0">Presensi masuk/pulang dengan lokasi dan selfie.</p><a class="btn btn-lg" href="presensi.html">Buka Presensi Guru</a></div>
+  const panel = (S.peg.peran || []).filter(r => ["kepala", "bendahara", "sarpras"].includes(r));
+  m.innerHTML = `${panel.length ? `<div class="gcard"><h3>Panel ${panel.map(r => ({ kepala: "Kepala Madrasah", bendahara: "Bendahara", sarpras: "Pengelola Sarpras" })[r]).join(" / ")}</h3><a class="btn btn-lg" href="admin.html">Buka Panel</a></div>` : ""}<div class="gcard"><h3>Presensi guru</h3><p class="muted small" style="margin-top:0">Presensi masuk/pulang dengan lokasi dan selfie.</p><a class="btn btn-lg" href="presensi.html">Buka Presensi Guru</a></div>
     <div class="gcard"><h3>Penugasan Anda</h3>
     ${w.length ? `<p style="margin:0 0 6px"><b>Wali kelas:</b></p>${w.map(x => `<span class="chip">${esc(x)}</span>`).join("")}` : ""}
     ${Object.keys(grp).length ? `<p style="margin:10px 0 6px"><b>Mengajar:</b></p>${Object.entries(grp).map(([mp, rs]) => `<div style="margin-bottom:6px"><b>${esc(mp)}</b> → ${rs.map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div>`).join("")}` : ""}
@@ -87,8 +89,9 @@ async function absen(m) {
       out.innerHTML = `<div class="gcard"><p class="muted small" style="margin-top:0">${old ? "Presensi sudah tersimpan; perubahan status memerlukan alasan." : "Belum ada presensi pada tanggal ini (pilihan awal: Hadir)."}</p>
         ${sl.length ? `<div class="wrapx"><table class="gtbl"><thead><tr><th>Nama</th>${ST.map(([k, l]) => `<th class="c">${l}</th>`).join("")}<th>Catatan</th></tr></thead><tbody>
         ${sl.map(s => `<tr><td>${esc(s.nama)}</td>${ST.map(([k]) => `<td class="c"><input type="radio" name="st_${esc(s.id)}" value="${k}" ${(data[s.id] || "H") === k ? "checked" : ""}></td>`).join("")}<td><input type="text" name="ct_${esc(s.id)}" value="${esc(cat[s.id] || "")}" maxlength="120"></td></tr>`).join("")}</tbody></table></div>
-        <div class="gsel" style="margin-top:12px"><button class="btn btn-ghost" id="allh">Semua hadir</button><button class="btn" id="save">Simpan presensi</button></div>` : `<div class="empty">Belum ada siswa aktif di rombel ini.</div>`}</div>`;
+        <div class="gsel" style="margin-top:12px"><button class="btn btn-ghost" id="allh">Semua hadir</button><button class="btn" id="save">Simpan presensi</button>${old ? `<button class="btn btn-ghost" id="konf">${old.konfirmasi ? "Perbarui konfirmasi ke orang tua" : "Konfirmasi ke orang tua"}</button>` : ""}</div>` : `<div class="empty">Belum ada siswa aktif di rombel ini.</div>`}</div>`;
       const allh = $("#allh"); if (allh) allh.onclick = () => $$("input[type=radio][value=H]", out).forEach(x => x.checked = true);
+      const kf = $("#konf"); if (kf) kf.onclick = async () => { if (!confirm("Tampilkan presensi tersimpan ini kepada orang tua masing-masing siswa?")) return; try { await konfirmasiPresensi(rid, tgl, sl, data, cat); toast("Presensi dikonfirmasi ke orang tua"); $("#go").click(); } catch (e) { toast(errText(e), "err"); } };
       const sv = $("#save"); if (!sv) return;
       sv.onclick = async () => {
         const nd = {}, nc = {};
@@ -169,18 +172,76 @@ async function rapor(m) {
   };
 }
 
+
+/* ---------- Portal orang tua / wali ---------- */
+const STL = { H: "Hadir", S: "Sakit", I: "Izin", A: "Alpa" };
+const bulanLabel = ym => { const [y, m] = ym.split("-").map(Number); return ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][m - 1] + " " + y; };
+async function whome(m) {
+  m.innerHTML = `<div class="gcard"><h3>Anak yang ditautkan</h3>${S.anak.length ? S.anak.map(a => `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${esc(a.nama)}</b><br><span class="muted small">Rombel ${esc(S.rombel[a.rombelId] || "–")}${a.nisn ? " · NISN " + esc(a.nisn) : ""}</span></div>`).join("") : `<div class="empty">Belum ada anak yang ditautkan. Hubungi operator madrasah.</div>`}</div>
+    <p class="muted small" style="text-align:center">Anda hanya dapat melihat presensi yang sudah dikonfirmasi wali kelas dan rapor yang sudah dipublikasikan.</p><p style="text-align:center"><a href="index.html">← Ke website</a></p>`;
+}
+const anakSel = id => `<select id="${id}">${S.anak.map(a => `<option value="${esc(a.id)}">${esc(a.nama)}</option>`).join("")}</select>`;
+async function wpres(m) {
+  const ym0 = wibToday().slice(0, 7);
+  m.innerHTML = `<div class="gcard"><h3>Presensi Anak</h3><div class="gsel">${anakSel("wa")}<input type="month" id="wb" value="${ym0}"><button class="btn" id="go">Tampilkan</button></div></div><div id="out"></div>`;
+  $("#go").onclick = async () => {
+    const id = $("#wa").value, ym = $("#wb").value; const out = $("#out"); out.innerHTML = `<div class="loading">Memuat…</div>`;
+    try {
+      const snap = await getDocs(query(collection(db, "presensi_ortu"), where("siswaId", "==", id)));
+      const l = snap.docs.map(d => d.data()).filter(x => String(x.tanggal).startsWith(ym)).sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+      const cnt = k => l.filter(x => x.status === k).length;
+      out.innerHTML = `<div class="gcard"><p style="margin:0 0 10px"><b>${esc(bulanLabel(ym))}</b> · Hadir ${cnt("H")} · Sakit ${cnt("S")} · Izin ${cnt("I")} · Alpa ${cnt("A")}</p>${l.length ? `<table class="gtbl"><thead><tr><th>Tanggal</th><th>Status</th><th>Catatan</th></tr></thead><tbody>${l.map(x => `<tr><td>${esc(fmtDate(x.tanggal))}</td><td>${esc(STL[x.status] || x.status)}</td><td>${esc(x.catatan || "")}</td></tr>`).join("")}</tbody></table>` : `<div class="empty">Belum ada presensi yang dikonfirmasi pada bulan ini.</div>`}</div>`;
+    } catch (e) { toast(errText(e), "err"); out.innerHTML = ""; }
+  };
+  $("#go").click();
+}
+function cetakRaporWali(r) {
+  const w = window.open("", "_blank"); if (!w) return toast("Izinkan pop-up untuk mencetak", "err");
+  const rows = (r.nilai || []).map((n, i) => `<tr><td>${i + 1}</td><td>${esc(n.nama)}</td><td style="text-align:center">${n.akhir}</td><td style="text-align:center">${esc(n.predikat)}</td></tr>`).join("");
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>Rapor ${esc(r.nama)}</title><style>body{font:13px/1.5 Arial,sans-serif;margin:28px;color:#111}h2,h3{text-align:center;margin:0}table{width:100%;border-collapse:collapse;margin:12px 0}th,td{border:1px solid #444;padding:5px 8px}th{background:#eee}</style><h2>LAPORAN HASIL BELAJAR (RAPOR)</h2><h3>MI BAHRUL ULUM</h3><hr><p>Nama: <b>${esc(r.nama)}</b><br>Kelas: ${esc(r.rombelNama)} · Semester ${esc(r.semester)} · TP ${esc(r.tapel)}</p><table><thead><tr><th>No</th><th>Mata Pelajaran</th><th>Nilai Akhir</th><th>Predikat</th></tr></thead><tbody>${rows}</tbody></table><p>Ketidakhadiran: Sakit ${r.sakit || 0} · Izin ${r.izin || 0} · Alpa ${r.alpa || 0}</p><p>Sikap: ${esc(r.sikap || "-")}</p><p>Catatan wali kelas: ${esc(r.catatan || "-")}</p>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
+}
+async function wrapor(m) {
+  m.innerHTML = `<div class="gcard"><h3>Rapor Anak</h3><div class="gsel">${anakSel("wa")}<button class="btn" id="go">Tampilkan</button></div></div><div id="out"></div>`;
+  $("#go").onclick = async () => {
+    const id = $("#wa").value; const out = $("#out"); out.innerHTML = `<div class="loading">Memuat…</div>`;
+    try {
+      const snap = await getDocs(query(collection(db, "rapor"), where("siswaId", "==", id), where("status", "==", "publikasi")));
+      const l = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(b.tapel + b.semester).localeCompare(String(a.tapel + a.semester)));
+      out.innerHTML = l.length ? l.map(r => `<div class="gcard"><h3>${esc(r.rombelNama)} · Semester ${esc(r.semester)} · TP ${esc(r.tapel)}</h3><table class="gtbl"><thead><tr><th>Mata pelajaran</th><th class="c">Nilai</th><th class="c">Predikat</th></tr></thead><tbody>${(r.nilai || []).map(n => `<tr><td>${esc(n.nama)}</td><td class="c">${n.akhir}</td><td class="c">${esc(n.predikat)}</td></tr>`).join("")}</tbody></table>
+        <p class="small" style="margin:10px 0 0">Sakit ${r.sakit || 0} · Izin ${r.izin || 0} · Alpa ${r.alpa || 0} hari<br>Sikap: <b>${esc(r.sikap || "-")}</b><br>Catatan wali kelas: ${esc(r.catatan || "-")}</p><p style="margin:12px 0 0"><button class="btn btn-ghost btn-sm" data-pr="${esc(r.id)}">Cetak / Simpan PDF</button></p></div>`).join("") : `<div class="gcard"><div class="empty">Belum ada rapor yang dipublikasikan.</div></div>`;
+      out.onclick = e => { const b = e.target.closest("[data-pr]"); if (b) cetakRaporWali(l.find(x => x.id === b.dataset.pr)); };
+    } catch (e) { toast(errText(e), "err"); out.innerHTML = ""; }
+  };
+  $("#go").click();
+}
+async function winfo(m) {
+  m.innerHTML = `<div class="loading">Memuat…</div>`;
+  const ids = ["", ...new Set(S.wali.rombelAkses || [])]; const seen = new Map();
+  for (const rid of ids) { try { (await getDocs(query(collection(db, "info_ortu"), where("rombelId", "==", rid)))).docs.forEach(d => seen.set(d.id, d.data())); } catch (e) { console.warn(e); } }
+  const l = [...seen.values()].sort((a, b) => String(b.tanggal).localeCompare(String(a.tanggal)));
+  m.innerHTML = l.length ? l.map(x => `<div class="gcard"><h3>${esc(x.judul)}</h3><p class="muted small" style="margin:0 0 8px">${esc(fmtDate(x.tanggal))}</p><p style="margin:0;white-space:pre-line">${esc(x.isi)}</p></div>`).join("") : `<div class="gcard"><div class="empty">Belum ada informasi untuk Anda.</div></div>`;
+}
+
 /* ---------- Start ---------- */
 if (!configured) viewMsg("Firebase belum dikonfigurasi", "Isi <code>firebase-config.js</code> terlebih dahulu.");
 else onAuthStateChanged(auth, async user => {
-  S.user = user;
+  S.user = user; S.wali = null; S.peg = null;
   if (!user) return viewLogin();
   try {
     const p = await getDoc(doc(db, "pegawai", user.uid));
-    if (!p.exists() || p.data().aktif !== true) return viewMsg("Akun belum aktif", "Akun Anda belum terdaftar atau dinonaktifkan sebagai guru. Hubungi admin madrasah. Jika Anda admin, masuk lewat <a href=\"admin.html\">halaman admin</a>.");
-    S.peg = p.data();
-    const [rb, mp] = await Promise.all([getDocs(collection(db, "rombel")), getDocs(collection(db, "mapel"))]);
-    S.rombel = Object.fromEntries(rb.docs.map(d => [d.id, d.data().nama])); S.mapel = Object.fromEntries(mp.docs.map(d => [d.id, d.data().nama]));
-    S.c = await cfg();
+    if (p.exists() && p.data().aktif === true) {
+      S.peg = p.data();
+      const [rb, mp] = await Promise.all([getDocs(collection(db, "rombel")), getDocs(collection(db, "mapel"))]);
+      S.rombel = Object.fromEntries(rb.docs.map(d => [d.id, d.data().nama])); S.mapel = Object.fromEntries(mp.docs.map(d => [d.id, d.data().nama]));
+    } else {
+      const w = await getDoc(doc(db, "wali", user.uid));
+      if (!w.exists() || w.data().aktif !== true) return viewMsg("Akun belum aktif", "Akun Anda belum terdaftar atau dinonaktifkan. Hubungi admin madrasah. Jika Anda admin, masuk lewat <a href=\"admin.html\">halaman admin</a>.");
+      S.wali = w.data();
+      const rb = await getDocs(collection(db, "rombel")); S.rombel = Object.fromEntries(rb.docs.map(d => [d.id, d.data().nama]));
+      S.anak = (await Promise.all((S.wali.anak || []).map(async id => { try { const d = await getDoc(doc(db, "siswa", id)); return d.exists() ? { id, ...d.data() } : null; } catch { return null; } }))).filter(Boolean);
+    }
+    S.c = await cfg().catch(() => ({ tapel: "", semester: "", kkm: 70 }));
     if (!tabsList().some(([k]) => k === S.tab)) S.tab = "home";
     frame();
   } catch (e) { console.error(e); viewMsg("Gagal memuat", "Periksa koneksi lalu muat ulang halaman."); }

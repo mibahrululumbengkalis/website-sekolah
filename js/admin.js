@@ -8,10 +8,19 @@ import { presensiTabs } from "./admin-presensi.js";
 import { akademikTabs } from "./admin-akademik.js";
 
 const root = $("#root");
-const state = { user: null, tab: "dashboard", counts: {} };
+const state = { user: null, tab: "dashboard", counts: {}, admin: true, peran: [], canGuru: false };
 
 /* ---------- Skema data ---------- */
 const COLS = {
+  info_ortu: { label: "Info Orang Tua", cols: ["tanggal", "judul", "rombelId"], sort: (a, b) => String(b.tanggal).localeCompare(String(a.tanggal)),
+    init: () => ({ tanggal: today(), rombelId: "" }),
+    fields: [{ k: "judul", l: "Judul", req: 1 }, { k: "tanggal", l: "Tanggal", t: "date", req: 1 }, { k: "rombelId", l: "Ditujukan ke", t: "select", opts: [["", "Semua orang tua"]] }, { k: "isi", l: "Isi informasi", t: "textarea", rows: 6, req: 1 }] },
+  aset: { label: "Inventaris Aset", cols: ["kode", "nama", "kategori", "lokasi", "kondisi", "jumlah"], sort: (a, b) => String(a.kode || "").localeCompare(String(b.kode || "")) || String(a.nama).localeCompare(String(b.nama)),
+    init: () => ({ jumlah: 1, kondisi: "Baik" }),
+    fields: [{ k: "kode", l: "Kode / No. inventaris" }, { k: "nama", l: "Nama aset", req: 1 }, { k: "kategori", l: "Kategori (mis. Meja, Elektronik, Buku)" }, { k: "lokasi", l: "Lokasi (mis. Kelas 1A)" }, { k: "kondisi", l: "Kondisi", t: "select", opts: ["Baik", "Rusak ringan", "Rusak berat", "Dihapuskan"] }, { k: "jumlah", l: "Jumlah", t: "number" }, { k: "tahun", l: "Tahun perolehan" }, { k: "nilai", l: "Nilai perolehan (Rp)", t: "number" }, { k: "ket", l: "Keterangan", t: "textarea", rows: 3 }] },
+  aset_log: { label: "Aktivitas Aset", cols: ["tanggal", "aset", "jenis", "ket"], sort: (a, b) => String(b.tanggal).localeCompare(String(a.tanggal)),
+    init: () => ({ tanggal: today(), jenis: "Pemeliharaan" }),
+    fields: [{ k: "tanggal", l: "Tanggal", t: "date", req: 1 }, { k: "aset", l: "Nama / kode aset", req: 1 }, { k: "jenis", l: "Jenis aktivitas", t: "select", opts: ["Pemeliharaan", "Perbaikan", "Pemindahan", "Peminjaman", "Penghapusan", "Pengadaan"] }, { k: "ket", l: "Keterangan", t: "textarea", rows: 3 }, { k: "biaya", l: "Biaya (Rp, bila ada)", t: "number" }] },
   rombel: { label: "Rombel / Kelas", cols: ["nama", "tingkat", "waliKelas", "urutan"], sort: (a, b) => (a.urutan || 0) - (b.urutan || 0) || String(a.nama).localeCompare(String(b.nama)),
     init: () => ({ urutan: 1 }),
     fields: [{ k: "nama", l: "Nama rombel (mis. 1A)", req: 1 }, { k: "tingkat", l: "Tingkat (1–6)", t: "number" }, { k: "waliKelas", l: "Wali kelas" }, { k: "urutan", l: "Urutan", t: "number" }] },
@@ -160,16 +169,22 @@ function viewDenied(user) {
 /* ---------- Shell ---------- */
 const TABS = [["dashboard", "Dashboard"], ["berita", "Berita"], ["pengumuman", "Pengumuman"], ["slider", "Slide Beranda"], ["guru", "Guru & Staf"], ["galeri", "Galeri"], ["fasilitas", "Fasilitas"],
   ["program", "Program"], ["ppdb", "Pendaftar PPDB"], ["pesan", "Pesan Masuk"], ["presensi", "Presensi Hari Ini"], ["rekap", "Rekap Presensi"],
-  ["pegawai", "Akun Guru"], ["presensiset", "Pengaturan Presensi"], ["pengaturan", "Pengaturan Website"],
+  ["pegawai", "Akun Pegawai"], ["presensiset", "Pengaturan Presensi"], ["pengaturan", "Pengaturan Website"],
   ["siswa", "Data Siswa"], ["rombel", "Rombel / Kelas"], ["naik", "Kenaikan & Kelulusan"], ["absen", "Presensi Siswa"], ["rekapsiswa", "Rekap Presensi Siswa"],
-  ["mapel", "Mata Pelajaran"], ["nilai", "Input Nilai"], ["rapor", "Rapor"], ["kas", "Buku Kas"], ["anggaran", "Anggaran"], ["realisasi", "Realisasi Anggaran"], ["akad", "Pengaturan Akademik"]];
+  ["mapel", "Mata Pelajaran"], ["nilai", "Input Nilai"], ["rapor", "Rapor"], ["kas", "Buku Kas"], ["anggaran", "Anggaran"], ["realisasi", "Realisasi Anggaran"], ["akad", "Pengaturan Akademik"],
+  ["laporan", "Laporan Ringkas"], ["persetujuan", "Persetujuan Rapor"], ["wali", "Akun Orang Tua"], ["info_ortu", "Info Orang Tua"], ["aset", "Inventaris Aset"], ["aset_log", "Aktivitas Aset"]];
 const MENU = [
   ["Website", "dashboard", ["dashboard", "berita", "pengumuman", "slider", "guru", "galeri", "fasilitas", "program", "ppdb", "pesan", "pengaturan"]],
   ["Presensi Guru", "presensi", ["presensi", "rekap", "pegawai", "presensiset"]],
-  ["Kesiswaan", "siswa", ["siswa", "rombel", "naik", "absen", "rekapsiswa"]],
-  ["Akademik", "mapel", ["mapel", "nilai", "rapor", "akad"]],
-  ["Keuangan", "kas", ["kas", "anggaran", "realisasi"]]
+  ["Kesiswaan", "siswa", ["siswa", "rombel", "naik", "absen", "rekapsiswa", "wali", "info_ortu"]],
+  ["Akademik", "mapel", ["mapel", "nilai", "rapor", "persetujuan", "akad"]],
+  ["Keuangan", "kas", ["kas", "anggaran", "realisasi"]],
+  ["Sarpras", "aset", ["aset", "aset_log"]],
+  ["Laporan", "laporan", ["laporan"]]
 ];
+// Hak akses menu: admin penuh; pegawai berperan hanya melihat menu perannya
+const ROLE_TABS = { kepala: ["laporan", "persetujuan", "rekapsiswa", "realisasi"], bendahara: ["kas", "anggaran", "realisasi"], sarpras: ["aset", "aset_log"] };
+const allowed = k => state.admin || (state.peran || []).some(p => (ROLE_TABS[p] || []).includes(k));
 const openGrp = new Set();
 
 const IC = {
@@ -200,6 +215,12 @@ const IC = {
   anggaran: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   realisasi: '<circle cx="12" cy="12" r="9"/><path d="M12 12V3M12 12l6 4"/>',
   akad: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+  wali: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="10" r="2"/><path d="M17 14c2 0 4 1 4 4"/>',
+  info_ortu: '<path d="M4 4h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/>',
+  aset: '<path d="M3 8l9-5 9 5v10l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v10"/>',
+  aset_log: '<path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/>',
+  laporan: '<path d="M4 20V4M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/>',
+  persetujuan: '<path d="M5 12l4 4 10-10"/><rect x="3" y="3" width="18" height="18" rx="3"/>',
   out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
   ext: '<path d="M14 3h7v7M21 3l-9 9M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/>',
   menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
@@ -217,17 +238,17 @@ async function loadCounts() {
   state.counts = { peng, guru, gal, ppdb, ppdbBaru, pesanBaru };
 }
 async function shell() {
-  await loadCounts();
+  if (state.admin) await loadCounts();
   const c = state.counts;
   const badge = k => k === "ppdb" && c.ppdbBaru ? `<span class="cnt">${c.ppdbBaru}</span>` : k === "pesan" && c.pesanBaru ? `<span class="cnt">${c.pesanBaru}</span>` : "";
   const tglStr = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" }).format(new Date());
   const mail = (state.user && state.user.email) || "Admin";
-  root.innerHTML = `<div class="shell"><aside class="side" id="side"><div class="brand-a"><img src="icons/logo-192.png" alt=""><h2>Admin MI Bahrul Ulum</h2></div>
-    <nav>${MENU.map(([gl, gi, ks]) => { const on = ks.includes(state.tab) || openGrp.has(gl); if (ks.includes(state.tab)) openGrp.add(gl);
+  root.innerHTML = `<div class="shell"><aside class="side" id="side"><div class="brand-a"><img src="icons/logo-192.png" alt=""><h2>${state.admin ? "Admin" : "Panel"} MI Bahrul Ulum</h2></div>
+    <nav>${MENU.map(([gl, gi, ks0]) => { const ks = ks0.filter(allowed); if (!ks.length) return ""; const on = ks.includes(state.tab) || openGrp.has(gl); if (ks.includes(state.tab)) openGrp.add(gl);
       const nb = ks.reduce((n, k) => n + (k === "ppdb" ? c.ppdbBaru || 0 : k === "pesan" ? c.pesanBaru || 0 : 0), 0);
       return `<div class="mg ${on ? "open" : ""}" data-g="${esc(gl)}"><button type="button" class="mg-h" title="${esc(gl)}">${ico(gi)}<span>${gl}</span>${nb ? `<span class="cnt">${nb}</span>` : ""}<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
       <div class="mg-b">${ks.map(k => `<a href="#${k}" data-t="${k}" class="${state.tab === k ? "on" : ""}"><span>${(TABS.find(t => t[0] === k) || [])[1]}</span>${badge(k)}</a>`).join("")}</div></div>`; }).join("")}</nav>
-    <div class="foot-links"><a href="index.html" target="_blank" rel="noopener" title="Lihat website">${ico("ext")}<span>Lihat website</span></a><a href="#" id="logout" title="Keluar">${ico("out")}<span>Keluar</span></a></div></aside>
+    <div class="foot-links"><a href="index.html" target="_blank" rel="noopener" title="Lihat website">${ico("ext")}<span>Lihat website</span></a>${state.canGuru ? `<a href="guru.html" title="Portal Guru">${ico("guru")}<span>Portal Guru</span></a>` : ""}<a href="#" id="logout" title="Keluar">${ico("out")}<span>Keluar</span></a></div></aside>
     <div class="scrim" id="scrim"></div>
     <div class="content"><header class="topbar"><button class="menu-btn" id="menu" aria-label="Menu">${ico("menu")}</button><button class="collapse-btn" id="coll" aria-label="Ciutkan menu" title="Ciutkan / lebarkan menu">${ico("menu")}</button><span class="sp"></span>
       <span class="datepill">${ico("presensi")}<span>${esc(tglStr)}</span></span>
@@ -257,7 +278,7 @@ async function renderTab() {
   { const g = $(`.side a[data-t="${state.tab}"]`); if (g) { const mg = g.closest(".mg"); mg.classList.add("open"); openGrp.add(mg.dataset.g); } }
   try {
     if (state.tab === "dashboard") await tabDashboard(main);
-    else if (COLS[state.tab]) await tabCrud(main, state.tab);
+    else if (COLS[state.tab]) { if (state.tab === "info_ortu") { const rb = await listCol("rombel"); COLS.info_ortu.fields[2].opts = [["", "Semua orang tua"], ...rb.sort((a, b) => String(a.nama).localeCompare(String(b.nama), "id", { numeric: true })).map(r => [r.id, "Orang tua rombel " + r.nama])]; } await tabCrud(main, state.tab); }
     else if (state.tab === "ppdb") await tabPpdb(main);
     else if (state.tab === "pesan") await tabPesan(main);
     else if (state.tab === "presensi") await P.hari(main);
@@ -270,7 +291,7 @@ async function renderTab() {
 }
 window.addEventListener("hashchange", () => {
   const t = location.hash.slice(1);
-  if (TABS.some(([k]) => k === t) && state.user) { state.tab = t; renderTab(); }
+  if (TABS.some(([k]) => k === t) && allowed(t) && state.user) { state.tab = t; renderTab(); }
 });
 
 /* ---------- Tab: Dashboard ---------- */
@@ -292,6 +313,7 @@ async function tabCrud(main, name) {
     const f = cfg.fields.find(x => x.k === k);
     if (f && f.t === "image") return safeUrl(r[k]) ? `<img src="${esc(safeUrl(r[k]))}" alt="">` : "–";
     if (f && f.t === "date") return esc(fmtDate(r[k]));
+    if (f && f.t === "select") { const o = (f.opts || []).find(x => Array.isArray(x) && String(x[0]) === String(r[k] ?? "")); if (o) return esc(o[1]); }
     return esc(r[k] ?? "");
   };
   main.innerHTML = `<div class="top"><h1>${cfg.label}</h1><button class="btn" id="add">+ Tambah</button></div>
@@ -410,7 +432,7 @@ async function tabSettings(main) {
 const P = presensiTabs({ fieldHTML, readForm, modal, errMsg, wireImages, refresh: () => renderTab() });
 
 const AK0 = akademikTabs({ fieldHTML, readForm, modal, errMsg, wireImages });
-const AK = { siswa: AK0.siswa, naik: AK0.naik, absen: AK0.absen, rekapsiswa: AK0.rekapSiswa, nilai: AK0.nilai, rapor: AK0.rapor, kas: AK0.kas, realisasi: AK0.realisasi, akad: AK0.akad };
+const AK = { laporan: AK0.laporan, persetujuan: AK0.persetujuan, wali: AK0.wali, siswa: AK0.siswa, naik: AK0.naik, absen: AK0.absen, rekapsiswa: AK0.rekapSiswa, nilai: AK0.nilai, rapor: AK0.rapor, kas: AK0.kas, realisasi: AK0.realisasi, akad: AK0.akad };
 
 /* ---------- Start ---------- */
 if (!configured) viewSetup();
@@ -419,15 +441,21 @@ else onAuthStateChanged(auth, async user => {
   if (!user) return viewLogin();
   try {
     const a = await getDoc(doc(db, "admins", user.uid));
-    if (!a.exists()) {
-      // Bukan admin: bila akun guru aktif, arahkan ke portal guru
-      let guru = false;
-      try { const g = await getDoc(doc(db, "pegawai", user.uid)); guru = g.exists() && g.data().aktif === true; } catch {}
-      if (guru) { root.innerHTML = `<div class="loading">Mengalihkan ke Portal Guru…</div>`; location.replace("guru.html"); return; }
-      return viewDenied(user);
+    state.admin = a.exists(); state.peran = []; state.canGuru = false;
+    if (!state.admin) {
+      // Bukan admin: cek akun pegawai (guru, kepala, bendahara, sarpras, tendik) atau orang tua/wali
+      let peg = null, wali = false;
+      try { const g = await getDoc(doc(db, "pegawai", user.uid)); if (g.exists() && g.data().aktif === true) peg = g.data(); } catch {}
+      if (!peg) { try { const w = await getDoc(doc(db, "wali", user.uid)); wali = w.exists() && w.data().aktif === true; } catch {} }
+      const panel = peg ? (peg.peran || []).filter(p => ROLE_TABS[p]) : [];
+      if (peg && panel.length) { state.peran = panel; state.canGuru = true; }
+      else if (peg || wali) { root.innerHTML = `<div class="loading">Mengalihkan ke portal…</div>`; location.replace("guru.html"); return; }
+      else return viewDenied(user);
     }
   } catch (e) { return viewDenied(user); }
+  const first = TABS.find(([k]) => allowed(k));
+  state.tab = first ? first[0] : "dashboard";
   const t = location.hash.slice(1);
-  if (TABS.some(([k]) => k === t)) state.tab = t;
+  if (TABS.some(([k]) => k === t) && allowed(t)) state.tab = t;
   shell();
 });

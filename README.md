@@ -88,3 +88,9 @@ Urutan awal: Pengaturan Akademik → Rombel → Mata Pelajaran → Data Siswa (a
 
 ## Portal guru
 Link guru: `https://mibahrululumbengkalis.github.io/website-sekolah/guru.html` (login pakai Akun Guru). Admin menetapkan wali kelas dan mapel yang diajar di Admin → Akun Guru → Ubah. **Publish ulang `firestore.rules`.**
+
+## Peran & akses
+- Admin (dokumen `admins/{uid}`): penuh.
+- Pegawai (`pegawai/{uid}.peran`): guru, kepala, bendahara, sarpras, tendik. Kepala/Bendahara/Sarpras login di admin.html dan hanya melihat menu perannya; guru/wali kelas dialihkan ke guru.html.
+- Orang tua (`wali/{uid}`): dibuat operator di Admin → Kesiswaan → Akun Orang Tua, ditautkan ke anak. Hanya melihat presensi yang dikonfirmasi, rapor yang dipublikasikan, dan Info Orang Tua.
+- **Publish ulang `firestore.rules`** setiap ada pembaruan.
