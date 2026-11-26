@@ -163,7 +163,14 @@ const TABS = [["dashboard", "Dashboard"], ["berita", "Berita"], ["pengumuman", "
   ["pegawai", "Akun Guru"], ["presensiset", "Pengaturan Presensi"], ["pengaturan", "Pengaturan Website"],
   ["siswa", "Data Siswa"], ["rombel", "Rombel / Kelas"], ["naik", "Kenaikan & Kelulusan"], ["absen", "Presensi Siswa"], ["rekapsiswa", "Rekap Presensi Siswa"],
   ["mapel", "Mata Pelajaran"], ["nilai", "Input Nilai"], ["rapor", "Rapor"], ["kas", "Buku Kas"], ["anggaran", "Anggaran"], ["realisasi", "Realisasi Anggaran"], ["akad", "Pengaturan Akademik"]];
-const GROUP = { dashboard: "Website", presensi: "Presensi Guru", siswa: "Kesiswaan", mapel: "Pembelajaran & Rapor", kas: "Keuangan", akad: "Sistem" };
+const MENU = [
+  ["Website", "dashboard", ["dashboard", "berita", "pengumuman", "slider", "guru", "galeri", "fasilitas", "program", "ppdb", "pesan", "pengaturan"]],
+  ["Presensi Guru", "presensi", ["presensi", "rekap", "pegawai", "presensiset"]],
+  ["Kesiswaan", "siswa", ["siswa", "rombel", "naik", "absen", "rekapsiswa"]],
+  ["Pembelajaran & Rapor", "mapel", ["mapel", "nilai", "rapor", "akad"]],
+  ["Keuangan", "kas", ["kas", "anggaran", "realisasi"]]
+];
+const openGrp = new Set();
 
 const IC = {
   dashboard: '<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
@@ -216,7 +223,10 @@ async function shell() {
   const tglStr = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" }).format(new Date());
   const mail = (state.user && state.user.email) || "Admin";
   root.innerHTML = `<div class="shell"><aside class="side" id="side"><div class="brand-a"><img src="icons/logo-192.png" alt=""><h2>Admin MI Bahrul Ulum</h2></div>
-    <nav>${TABS.map(([k, l]) => `${GROUP[k] ? `<div class="grp">${GROUP[k]}</div>` : ""}<a href="#${k}" data-t="${k}" class="${state.tab === k ? "on" : ""}">${ico(k)}<span>${l}</span>${badge(k)}</a>`).join("")}</nav>
+    <nav>${MENU.map(([gl, gi, ks]) => { const on = ks.includes(state.tab) || openGrp.has(gl); if (ks.includes(state.tab)) openGrp.add(gl);
+      const nb = ks.reduce((n, k) => n + (k === "ppdb" ? c.ppdbBaru || 0 : k === "pesan" ? c.pesanBaru || 0 : 0), 0);
+      return `<div class="mg ${on ? "open" : ""}" data-g="${esc(gl)}"><button type="button" class="mg-h">${ico(gi)}<span>${gl}</span>${nb ? `<span class="cnt">${nb}</span>` : ""}<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="mg-b">${ks.map(k => `<a href="#${k}" data-t="${k}" class="${state.tab === k ? "on" : ""}"><span>${(TABS.find(t => t[0] === k) || [])[1]}</span>${badge(k)}</a>`).join("")}</div></div>`; }).join("")}</nav>
     <div class="foot-links"><a href="index.html" target="_blank" rel="noopener">${ico("ext")}<span>Lihat website</span></a><a href="#" id="logout">${ico("out")}<span>Keluar</span></a></div></aside>
     <div class="scrim" id="scrim"></div>
     <div class="content"><header class="topbar"><button class="menu-btn" id="menu" aria-label="Menu">${ico("menu")}</button><span class="sp"></span>
@@ -227,7 +237,11 @@ async function shell() {
   const closeNav = () => { side.classList.remove("open"); scrim.classList.remove("on"); };
   $("#menu").addEventListener("click", () => { side.classList.add("open"); scrim.classList.add("on"); });
   scrim.addEventListener("click", closeNav);
-  side.addEventListener("click", e => { if (e.target.closest("a[data-t]")) closeNav(); });
+  side.addEventListener("click", e => {
+    const h = e.target.closest(".mg-h");
+    if (h) { const g = h.parentElement; g.classList.toggle("open"); const n = g.dataset.g; g.classList.contains("open") ? openGrp.add(n) : openGrp.delete(n); return; }
+    if (e.target.closest("a[data-t]")) closeNav();
+  });
   $("#logout").addEventListener("click", e => { e.preventDefault(); signOut(auth); });
   await renderTab();
 }
@@ -237,6 +251,7 @@ async function renderTab() {
   old.replaceWith(main);
   main.innerHTML = `<div class="loading">Memuat…</div>`;
   $$(".side a[data-t]").forEach(a => a.classList.toggle("on", a.dataset.t === state.tab));
+  { const g = $(`.side a[data-t="${state.tab}"]`); if (g) { const mg = g.closest(".mg"); mg.classList.add("open"); openGrp.add(mg.dataset.g); } }
   try {
     if (state.tab === "dashboard") await tabDashboard(main);
     else if (COLS[state.tab]) await tabCrud(main, state.tab);
