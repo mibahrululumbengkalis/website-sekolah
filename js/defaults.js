@@ -3,8 +3,9 @@
 export const DEFAULT_SETTINGS = {
   nama: "MI Bahrul Ulum",
   tagline: "Madrasah Ibtidaiyah yang Islami, Cerdas, dan Berprestasi",
-  heroJudul: "Mencetak Generasi Cerdas, Berakhlak, dan Berprestasi",
-  heroSub: "Selamat datang di website resmi MI Bahrul Ulum. Temukan informasi madrasah, kegiatan, pengumuman, dan pendaftaran peserta didik baru.",
+  heroTagline: "Membangun Generasi Cerdas, Berakhlak Mulia, dan Berprestasi di Desa Senderak, Bengkalis.",
+  heroJudul: "Selamat Datang di MI Bahrul Ulum",
+  heroSub: "Madrasah Ibtidaiyah Bahrul Ulum berkomitmen memberikan pendidikan berkualitas berbasis nilai-nilai Islam, teknologi modern, dan lingkungan Islami untuk siswa di Desa Senderak.",
   heroGambar: "",
   subjudul: "Madrasah Ibtidaiyah",
   warnaUtama: "#1b4398", warnaAksen: "#f5b82e",
@@ -19,7 +20,7 @@ export const DEFAULT_SETTINGS = {
   npsn: "", nsm: "", akreditasi: "", kepala: "", tahunBerdiri: "",
   statusSekolah: "Swasta", kurikulum: "Kurikulum Merdeka",
   statSiswa: "", statGuru: "", statRombel: "", statEkskul: "",
-  alamat: "", telp: "", wa: "", email: "", jam: "Senin – Sabtu, 07.00 – 13.00 WIB",
+  alamat: "Desa Senderak, Kecamatan Bengkalis, Kabupaten Bengkalis", telp: "", wa: "", email: "", jam: "Senin – Sabtu, 07.00 – 13.00 WIB",
   mapEmbed: "", facebook: "", instagram: "", youtube: "",
   ppdbBuka: true, ppdbTahun: "2027/2028", ppdbKuota: "",
   ppdbInfo: "Pendaftaran peserta didik baru MI Bahrul Ulum telah dibuka. Isi formulir online, lalu lengkapi berkas di madrasah.",
@@ -28,10 +29,10 @@ export const DEFAULT_SETTINGS = {
 };
 
 export const DEFAULT_PROGRAM = [
-  { id: "p1", judul: "Tahfidz & Baca Al-Qur'an", deskripsi: "Pembiasaan membaca dan menghafal Al-Qur'an setiap hari.", ikon: "📖", urutan: 1 },
-  { id: "p2", judul: "Pembiasaan Ibadah", deskripsi: "Salat dhuha, salat zuhur berjamaah, dan doa harian.", ikon: "🕌", urutan: 2 },
-  { id: "p3", judul: "Literasi & Numerasi", deskripsi: "Penguatan membaca, menulis, dan berhitung sejak dini.", ikon: "🔢", urutan: 3 },
-  { id: "p4", judul: "Ekstrakurikuler", deskripsi: "Pramuka, seni, olahraga, dan kegiatan pengembangan bakat.", ikon: "🏅", urutan: 4 }
+  { id: "p1", judul: "Pendidikan Karakter", deskripsi: "Pembiasaan akhlak mulia, disiplin, dan kepedulian sehari-hari.", ikon: "🌱", urutan: 1 },
+  { id: "p2", judul: "Kurikulum Nasional & Agama", deskripsi: "Perpaduan kurikulum nasional dan pendidikan agama Islam.", ikon: "📚", urutan: 2 },
+  { id: "p3", judul: "Fasilitas Modern", deskripsi: "Sarana belajar yang nyaman dan mendukung teknologi.", ikon: "🏫", urutan: 3 },
+  { id: "p4", judul: "Tahfidz & Baca Al-Qur'an", deskripsi: "Pembiasaan membaca dan menghafal Al-Qur'an setiap hari.", ikon: "📖", urutan: 4 }
 ];
 
 export const DEFAULT_FASILITAS = [

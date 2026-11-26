@@ -38,6 +38,7 @@ const empty = t => `<div class="empty">${esc(t)}</div>`;
 const waLink = n => { const d = String(n || "").replace(/\D/g, ""); return d ? "https://wa.me/" + (d.startsWith("0") ? "62" + d.slice(1) : d) : ""; };
 const clip = (t, n) => { t = String(t || ""); return t.length > n ? t.slice(0, n).trim() + "…" : t; };
 const LOGO = "icons/logo-192.png";
+const BANNER = "img/banner.jpg";
 const hex = v => /^#[0-9a-f]{6}$/i.test(String(v || "").trim()) ? String(v).trim() : "";
 const pageHead = (crumb, t, p = "") => `<section class="pagehead"><div class="wrap"><div class="crumb">${esc(crumb)}</div><h1>${esc(t)}</h1>${p ? `<p>${esc(p)}</p>` : ""}</div></section>`;
 const secHead = (eyebrow, title, link, href) => `<div class="sec-head"><div><span class="eyebrow-l">${esc(eyebrow)}</span><h2>${esc(title)}</h2></div>${link ? `<a class="link-arrow" href="${href}">${link} →</a>` : ""}</div>`;
@@ -72,7 +73,7 @@ function applyBrand() {
     ${fi(I.tel, "Kontak & Info", [s.telp, wa ? "WA " + s.wa : ""].filter(Boolean).join(" · "))}
     ${fi(I.web, "Media Sosial & Email", s.email)}
     <div class="socs">${sosmed}</div>
-  </div><div class="copy"><span>${esc(s.nama)}${s.alamat ? " · " + esc(clip(s.alamat, 60)) : ""}</span><span>© ${new Date().getFullYear()} ${esc(s.nama)}. Hak cipta dilindungi.</span></div></div>`;
+  </div><div class="copy"><span>${esc(s.nama)}${s.alamat ? " · " + esc(clip(s.alamat, 60)) : ""}</span><span><a href="presensi.html">Presensi Guru</a> · © ${new Date().getFullYear()} ${esc(s.nama)}. Hak cipta dilindungi.</span></div></div>`;
 }
 
 /* ---------- Komponen ---------- */
@@ -94,6 +95,12 @@ function heroSlides() {
 const dateBlock = d => { const t = String(d || ""); const dt = new Date(t.length <= 10 ? t + "T00:00:00" : t); return isNaN(dt) ? "" : `<span class="d1">${dt.getDate()} ${["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][dt.getMonth()]}</span><span class="d2">${dt.getFullYear()}</span>`; };
 const newsRow = b => `<a class="ni" href="#/berita/${esc(b.id)}"><div class="nd"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>${dateBlock(b.tanggal)}</div>
   <div class="nt"><h3>${esc(b.judul)}</h3><p>${esc(b.ringkasan || clip(b.isi, 110))}</p></div>${safeUrl(b.gambar) ? `<div class="nth">${img(b.gambar, b.judul)}</div>` : ""}</a>`;
+const DECOR = `<div class="h2deco" aria-hidden="true">
+  <svg class="dk palm" viewBox="0 0 160 200" fill="#cfe9d6"><path d="M70 200c4-60 2-100-6-150h10c6 50 6 90 2 150z"/><path d="M72 52c-20-26-48-30-68-14 22-4 40 2 56 18zM72 52c22-24 52-24 70-6-24-2-42 4-58 20zM72 50c-10-26-8-42 4-52 4 18 2 34-4 52zM72 54c-30-8-52 4-62 24 22-12 44-16 66-12zM72 54c28-6 50 6 58 26-20-14-40-18-62-14z"/></svg>
+  <svg class="dk mosq1" viewBox="0 0 200 150" fill="#d6e2f7"><path d="M20 150V60h8V40l4-14 4 14v20h8v90zM160 150V70h8V45l4-16 4 16v25h8v80zM60 150v-40c0-24 16-40 40-40s40 16 40 40v40z"/><circle cx="100" cy="64" r="5"/></svg>
+  <svg class="dk mosq2" viewBox="0 0 200 150" fill="#d6e2f7"><path d="M20 150V60h8V40l4-14 4 14v20h8v90zM60 150v-40c0-24 16-40 40-40s40 16 40 40v40zM160 150V70h8V45l4-16 4 16v25h8v80z"/></svg>
+  <span class="dk dot1"></span><span class="dk tri"></span><span class="dk dgrid g1"></span><span class="dk dgrid g2"></span><span class="dk dx">✕</span><span class="dk dplus">+</span><span class="dk dia"></span>
+</div>`;
 async function pgBeranda() {
   await need(["slider", "program"]); await need(["berita", "pengumuman", "galeri"], 8);
   const s = S.settings;
@@ -105,10 +112,10 @@ async function pgBeranda() {
   const gal = [...S.galeri].sort(byTgl).slice(0, 8);
   const berita = [...S.berita].sort(byTgl).slice(0, 3);
   return `
-  <section class="hero2"><div class="h2stage">${slides.map((x, i) => `<div class="h2slide ${i ? "" : "on"}"><div class="wrap h2in"><div class="h2txt">
-      <h1>${esc(x.judul)}</h1>${s.tagline ? `<p class="h2sub">${esc(s.tagline)}</p>` : ""}<p class="h2p">${esc(x.sub || "")}</p>
+  <section class="hero2">${DECOR}<div class="h2stage">${slides.map((x, i) => `<div class="h2slide ${i ? "" : "on"}"><div class="wrap h2in"><div class="h2txt">
+      <h1>${esc(x.judul)}</h1>${(s.heroTagline || s.tagline) ? `<p class="h2sub">${esc(s.heroTagline || s.tagline)}</p>` : ""}<p class="h2p">${esc(x.sub || "")}</p>
       <div class="cta"><a class="btn btn-ok" href="#/ppdb">DAFTAR ONLINE</a><a class="btn btn-outl" href="#/profil">JELAJAHI PROFIL</a></div></div></div>
-      <div class="h2img">${safeUrl(x.gambar) ? `<img src="${esc(safeUrl(x.gambar))}" alt="">` : `<div class="h2ph"><img src="${LOGO}" alt=""></div>`}${wa ? `<a class="h2wa" href="${wa}" target="_blank" rel="noopener" aria-label="WhatsApp">📞</a>` : ""}</div></div>`).join("")}</div>
+      <div class="h2img"><img src="${esc(safeUrl(x.gambar) || BANNER)}" alt="Suasana madrasah">${wa ? `<a class="h2wa" href="${wa}" target="_blank" rel="noopener" aria-label="WhatsApp">📞</a>` : ""}</div></div>`).join("")}</div>
     ${slides.length > 1 ? `<div class="dots">${slides.map((_, i) => `<button data-dot="${i}" class="${i ? "" : "on"}" aria-label="Slide ${i + 1}"></button>`).join("")}</div>` : ""}</section>
   <div class="wrap"><div class="feat">${prog.map((p, i) => `<div class="fcard">${i === 0 ? `<h3 class="ftit">Unggulan Kami</h3>` : ""}<span class="fnum n${i + 1}">${i + 1}.</span><b>${i + 1}. ${esc(p.judul)}</b></div>`).join("")}</div></div>
   <section class="section"><div class="wrap">
