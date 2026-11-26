@@ -403,3 +403,9 @@ body.pub.home.scrolled .site-header{background:rgba(255,255,255,.97);box-shadow:
 @media(max-width:1000px){.h2txt{max-width:none}.h2img{clip-path:none}.h2pic{clip-path:none}.hero2 .dots{justify-content:center;bottom:auto}}
 .h2pic{inset:0 0 0 14px;clip-path:circle(720px at 706px 50%)}
 @media(max-width:1000px){.h2img{width:calc(100% - 40px);max-width:640px;height:300px}.h2pic{inset:0}}
+
+/* Perbaikan header halaman (pagehead) pada tema publik */
+body.pub{--pri-d:color-mix(in srgb,var(--pri) 72%,#000);--pri-l:color-mix(in srgb,var(--pri) 9%,#fff);--acc-d:color-mix(in srgb,var(--acc) 80%,#000)}
+body.pub .pagehead,body.pub .pagehead h1,body.pub .pagehead h2,body.pub .pagehead p{color:#fff}
+body.pub .pagehead .eyebrow-l{color:var(--acc)}
+body.pub .hero h1,body.pub .hero h2{color:#fff}
