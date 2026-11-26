@@ -122,7 +122,7 @@ function viewSetup() {
     <a class="btn btn-ghost" href="index.html">← Ke website</a></div></div>`;
 }
 function viewLogin(msg = "") {
-  root.innerHTML = `<div class="login"><div class="card card-body"><h2>Panel Admin</h2><p class="muted">MI Bahrul Ulum</p>
+  root.innerHTML = `<div class="login"><div class="card card-body"><img src="icons/logo-192.png" alt="" style="width:72px;height:72px;display:block;margin:0 auto 10px"><h2 style="text-align:center">Panel Admin</h2><p class="muted">MI Bahrul Ulum</p>
     <form class="form" id="f-login"><label class="f">Email<input type="email" name="email" required autocomplete="username"></label>
     <label class="f">Kata sandi<input type="password" name="pw" required autocomplete="current-password"></label>
     <button class="btn" type="submit">Masuk</button><div id="login-msg">${msg}</div>
@@ -165,7 +165,7 @@ async function shell() {
   await loadCounts();
   const c = state.counts;
   const badge = k => k === "ppdb" && c.ppdbBaru ? `<span class="cnt">${c.ppdbBaru}</span>` : k === "pesan" && c.pesanBaru ? `<span class="cnt">${c.pesanBaru}</span>` : "";
-  root.innerHTML = `<div class="shell"><aside class="side"><h2>🕌 Admin MI Bahrul Ulum</h2>
+  root.innerHTML = `<div class="shell"><aside class="side"><h2><img src="icons/logo-192.png" alt="" style="width:30px;height:30px;vertical-align:middle;margin-right:8px">Admin MI Bahrul Ulum</h2>
     <nav>${TABS.map(([k, l]) => `<a href="#${k}" data-t="${k}" class="${state.tab === k ? "on" : ""}">${l}${badge(k)}</a>`).join("")}</nav>
     <div class="foot-links"><a href="index.html" target="_blank" rel="noopener">Lihat website ↗</a><a href="#" id="logout">Keluar</a></div></aside>
     <main class="main" id="main"></main></div>`;

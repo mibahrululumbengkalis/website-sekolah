@@ -13,7 +13,7 @@ const SLABEL = { hadir: "Hadir", terlambat: "Terlambat", izin: "Izin", sakit: "S
 /* ---------- Layar login ---------- */
 function viewLogin(msg = "") {
   stopClock();
-  root.innerHTML = `<div class="pwrap p-login"><div class="card card-body"><h2>Presensi Guru</h2><p class="muted">MI Bahrul Ulum</p>
+  root.innerHTML = `<div class="pwrap p-login"><div class="card card-body"><img src="icons/logo-192.png" alt="" style="width:72px;height:72px;display:block;margin:0 auto 10px"><h2 style="text-align:center">Presensi Guru</h2><p class="muted">MI Bahrul Ulum</p>
     <form class="form" id="f-login"><label class="f">Email<input type="email" name="email" required autocomplete="username"></label>
     <label class="f">Kata sandi<input type="password" name="pw" required autocomplete="current-password"></label>
     <button class="btn" type="submit">Masuk</button><div id="login-msg">${msg}</div>

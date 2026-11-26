@@ -37,6 +37,7 @@ const img = (src, alt, ph = "🏫") => safeUrl(src) ? `<img loading="lazy" src="
 const empty = t => `<div class="empty">${esc(t)}</div>`;
 const waLink = n => { const d = String(n || "").replace(/\D/g, ""); return d ? "https://wa.me/" + (d.startsWith("0") ? "62" + d.slice(1) : d) : ""; };
 const clip = (t, n) => { t = String(t || ""); return t.length > n ? t.slice(0, n).trim() + "…" : t; };
+const LOGO = "icons/logo-192.png";
 const hex = v => /^#[0-9a-f]{6}$/i.test(String(v || "").trim()) ? String(v).trim() : "";
 const pageHead = (crumb, t, p = "") => `<section class="pagehead"><div class="wrap"><div class="crumb">${esc(crumb)}</div><h1>${esc(t)}</h1>${p ? `<p>${esc(p)}</p>` : ""}</div></section>`;
 const secHead = (eyebrow, title, link, href) => `<div class="sec-head"><div><span class="eyebrow-l">${esc(eyebrow)}</span><h2>${esc(title)}</h2></div>${link ? `<a class="link-arrow" href="${href}">${link} →</a>` : ""}</div>`;
@@ -51,7 +52,7 @@ function applyBrand() {
   $("#brand-name").textContent = s.nama;
   $("#brand-tag").textContent = s.subjudul || "";
   const logo = safeUrl(s.logo);
-  $(".brand-logo").innerHTML = logo ? `<img src="${esc(logo)}" alt="Logo">` : "🕌";
+  $(".brand-logo").innerHTML = `<img src="${esc(logo || LOGO)}" alt="Logo">`;
   const wa = waLink(s.wa);
   const sosmed = [["Facebook", s.facebook], ["Instagram", s.instagram], ["YouTube", s.youtube]]
     .filter(([, u]) => safeLink(u)).map(([n, u]) => `<li><a href="${esc(safeLink(u))}" target="_blank" rel="noopener">${n}</a></li>`).join("");
@@ -113,7 +114,7 @@ async function pgProfil() {
   const logo = safeUrl(s.logo);
   return pageHead("Profil", "Profil Madrasah", s.nama) + `<section class="section"><div class="wrap">
     <div class="tabs" style="margin-bottom:26px">${tabs.map(([k, l], i) => `<button class="tab ${i ? "" : "on"}" data-tab="${k}">${l}</button>`).join("")}</div>
-    <div data-pane="id"><div class="idcard"><div class="top"><span class="brand-logo">${logo ? `<img src="${esc(logo)}" alt="">` : "🕌"}</span><div><b>${esc(s.nama)}</b><span class="muted small">${esc(s.subjudul || "")}</span></div></div>
+    <div data-pane="id"><div class="idcard"><div class="top"><span class="brand-logo"><img src="${esc(logo || LOGO)}" alt=""></span><div><b>${esc(s.nama)}</b><span class="muted small">${esc(s.subjudul || "")}</span></div></div>
       <dl>${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl></div></div>
     <div data-pane="vm" hidden><div class="grid g2" style="align-items:start"><div><h2>Visi</h2><div class="card card-body"><p style="margin:0">${esc(s.visi)}</p></div></div>
       <div><h2>Misi</h2><ol class="list-clean">${lines(s.misi).map(m => `<li>${esc(m)}</li>`).join("")}</ol></div></div></div>

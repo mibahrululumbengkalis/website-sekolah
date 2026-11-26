@@ -1,7 +1,7 @@
 // Service worker sederhana: cache app shell, data Firebase selalu diambil langsung.
-const CACHE = 'mibu-v4';
+const CACHE = 'mibu-v5';
 const SHELL = ['./', './index.html', './admin.html', './css/style.css', './js/public.js', './js/admin.js',
-  './js/firebase.js', './js/util.js', './js/defaults.js', './js/presensi-core.js', './js/presensi.js', './js/admin-presensi.js', './presensi.html', './css/admin.css', './css/presensi.css', './firebase-config.js', './manifest.webmanifest', './icons/icon.svg'];
+  './js/firebase.js', './js/util.js', './js/defaults.js', './js/presensi-core.js', './js/presensi.js', './js/admin-presensi.js', './presensi.html', './css/admin.css', './css/presensi.css', './firebase-config.js', './manifest.webmanifest', './icons/logo-192.png', './icons/favicon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
