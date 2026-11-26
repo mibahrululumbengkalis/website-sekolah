@@ -96,10 +96,7 @@ const dateBlock = d => { const t = String(d || ""); const dt = new Date(t.length
 const newsRow = b => `<a class="ni" href="#/berita/${esc(b.id)}"><div class="nd"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>${dateBlock(b.tanggal)}</div>
   <div class="nt"><h3>${esc(b.judul)}</h3><p>${esc(b.ringkasan || clip(b.isi, 110))}</p></div>${safeUrl(b.gambar) ? `<div class="nth">${img(b.gambar, b.judul)}</div>` : ""}</a>`;
 const DECOR = `<div class="h2deco" aria-hidden="true">
-  <svg class="dk palm" viewBox="0 0 160 200" fill="#cfe9d6"><path d="M70 200c4-60 2-100-6-150h10c6 50 6 90 2 150z"/><path d="M72 52c-20-26-48-30-68-14 22-4 40 2 56 18zM72 52c22-24 52-24 70-6-24-2-42 4-58 20zM72 50c-10-26-8-42 4-52 4 18 2 34-4 52zM72 54c-30-8-52 4-62 24 22-12 44-16 66-12zM72 54c28-6 50 6 58 26-20-14-40-18-62-14z"/></svg>
-  <svg class="dk mosq1" viewBox="0 0 200 150" fill="#d6e2f7"><path d="M20 150V60h8V40l4-14 4 14v20h8v90zM160 150V70h8V45l4-16 4 16v25h8v80zM60 150v-40c0-24 16-40 40-40s40 16 40 40v40z"/><circle cx="100" cy="64" r="5"/></svg>
-  <svg class="dk mosq2" viewBox="0 0 200 150" fill="#d6e2f7"><path d="M20 150V60h8V40l4-14 4 14v20h8v90zM60 150v-40c0-24 16-40 40-40s40 16 40 40v40zM160 150V70h8V45l4-16 4 16v25h8v80z"/></svg>
-  <span class="dk dot1"></span><span class="dk tri"></span><span class="dk dgrid g1"></span><span class="dk dgrid g2"></span><span class="dk dx">✕</span><span class="dk dplus">+</span><span class="dk dia"></span>
+  <span class="dk dot1"></span><span class="dk dgrid g1"></span><span class="dk dgrid g2"></span><span class="dk dplus">+</span><span class="dk dia"></span>
 </div>`;
 async function pgBeranda() {
   await need(["slider", "program"]); await need(["berita", "pengumuman", "galeri"], 8);
