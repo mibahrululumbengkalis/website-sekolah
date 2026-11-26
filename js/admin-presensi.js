@@ -151,7 +151,7 @@ export function presensiTabs(ctx) {
       <p class="muted small">Setiap guru login di <code>guru.html</code> (portal guru; presensi tetap bisa lewat <code>presensi.html</code>) dengan email dan kata sandi di bawah. Gunakan email aktif milik guru agar fitur “Lupa kata sandi” berfungsi.</p>
       <div class="tbl-wrap">${rows.length ? `<table class="t"><thead><tr><th>Nama</th><th>Jabatan</th><th>Peran</th><th>Email</th><th>Mulai</th><th>Status</th><th></th></tr></thead><tbody>
       ${rows.map(p => `<tr><td>${esc(p.nama)}</td><td>${esc(p.jabatan || "")}</td><td>${esc((p.peran || []).join(", ") || "–")}</td><td>${esc(p.email || "")}</td><td>${esc(p.mulai ? tglID(p.mulai) : "")}</td><td>${p.aktif ? '<span class="pill diterima">Aktif</span>' : '<span class="pill ditolak">Nonaktif</span>'}</td>
-        <td><div class="acts"><button class="btn btn-ghost btn-sm" data-e="${esc(p.id)}">Ubah</button><button class="btn btn-ghost btn-sm" data-r="${esc(p.id)}">Reset sandi</button></div></td></tr>`).join("")}
+        <td><div class="acts"><button class="btn btn-ghost btn-sm" data-e="${esc(p.id)}">Ubah</button><button class="btn btn-ghost btn-sm" data-r="${esc(p.id)}">Reset sandi</button><button class="btn btn-danger btn-sm" data-del="${esc(p.id)}">Hapus</button></div></td></tr>`).join("")}
       </tbody></table>` : `<div class="empty" style="border:0">Belum ada akun guru.</div>`}</div>`;
     $("#add").onclick = () => {
       const m = modal(`<h3>Tambah akun guru</h3><form class="form" id="f-peg">
@@ -178,8 +178,14 @@ export function presensiTabs(ctx) {
         }
       });
     };
-    main.addEventListener("click", async e => {
-      const be = e.target.closest("[data-e]"), br = e.target.closest("[data-r]");
+    main.onclick = async e => {
+      const be = e.target.closest("[data-e]"), br = e.target.closest("[data-r]"), bd = e.target.closest("[data-del]");
+      if (bd) {
+        const p = rows.find(x => x.id === bd.dataset.del);
+        if (!confirm(`Hapus akun pegawai "${p.nama}"?\n\nAkses ke portal/panel akan dicabut. Riwayat presensi yang sudah tercatat tidak ikut terhapus. (Untuk sekadar menonaktifkan sementara, gunakan Ubah → matikan "Akun aktif".)`)) return;
+        try { await deleteDoc(doc(db, "pegawai", p.id)); toast("Akun pegawai dihapus"); await pegawai(main); } catch (err) { toast(errMsg(err), "err"); }
+        return;
+      }
       if (br) {
         const p = rows.find(x => x.id === br.dataset.r);
         if (!p.email) return toast("Email tidak tersedia", "err");
@@ -210,7 +216,7 @@ export function presensiTabs(ctx) {
           try { await updateDoc(doc(db, "pegawai", p.id), { nama: f.nama.value.trim(), jabatan: f.jabatan.value.trim(), mulai: f.mulai.value, aktif: f.aktif.checked, walas, ajarMapel, ajarRombel, ajar, rombelAkses, peran: [...f.querySelectorAll("input[name=peran]:checked")].map(x => x.value) }); m.remove(); toast("Tersimpan"); ctx.refresh(); } catch (err) { toast(errMsg(err), "err"); }
         });
       }
-    });
+    };
   }
 
   /* ---- Pengaturan presensi ---- */
