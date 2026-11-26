@@ -1,10 +1,10 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
-  serverTimestamp, getCountFromServer, query, where
+  serverTimestamp, getCountFromServer, query, where, writeBatch, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
-  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { firebaseConfig } from "../firebase-config.js";
 
@@ -19,7 +19,7 @@ if (configured) {
 
 export {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp,
-  getCountFromServer, query, where,
+  getCountFromServer, query, where, writeBatch, Timestamp,
   signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail
 };
 
@@ -27,4 +27,17 @@ export {
 export async function listCol(name) {
   const snap = await getDocs(collection(db, name));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+/** Buat akun Auth baru TANPA mengeluarkan admin yang sedang login (memakai instance Firebase kedua). */
+export async function createStaffAccount(email, password) {
+  const sec = initializeApp(firebaseConfig, "secondary-" + Date.now());
+  const a = getAuth(sec);
+  try {
+    const cred = await createUserWithEmailAndPassword(a, email, password);
+    return cred.user.uid;
+  } finally {
+    try { await signOut(a); } catch {}
+    try { await deleteApp(sec); } catch {}
+  }
 }

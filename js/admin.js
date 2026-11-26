@@ -4,6 +4,7 @@ import {
 } from "./firebase.js";
 import { $, $$, esc, safeUrl, fmtDate, toast, compressImage, today } from "./util.js";
 import { DEFAULT_SETTINGS } from "./defaults.js";
+import { presensiTabs } from "./admin-presensi.js";
 
 const root = $("#root");
 const state = { user: null, tab: "dashboard", counts: {} };
@@ -66,7 +67,7 @@ function fieldHTML(f, v) {
       <input type="hidden" name="${f.k}" value="${esc(u)}"><img class="prev" ${u ? `src="${esc(u)}"` : "hidden"} alt="">
       <button type="button" class="btn btn-ghost btn-sm" data-clear="${f.k}" style="margin-top:8px" ${u ? "" : "hidden"}>Hapus gambar</button></div>`;
   }
-  const type = f.t === "number" ? "number" : f.t === "date" ? "date" : "text";
+  const type = ["number", "date", "time"].includes(f.t) ? f.t : "text";
   return `<label class="f">${lab}<input type="${type}" name="${f.k}" value="${esc(val)}"${req}></label>`;
 }
 function readForm(form, fields) {
@@ -140,7 +141,8 @@ function viewDenied(user) {
 
 /* ---------- Shell ---------- */
 const TABS = [["dashboard", "Dashboard"], ["pengumuman", "Pengumuman"], ["guru", "Guru & Staf"], ["galeri", "Galeri"], ["fasilitas", "Fasilitas"],
-  ["program", "Program"], ["ppdb", "Pendaftar PPDB"], ["pesan", "Pesan Masuk"], ["pengaturan", "Pengaturan Website"]];
+  ["program", "Program"], ["ppdb", "Pendaftar PPDB"], ["pesan", "Pesan Masuk"], ["presensi", "Presensi Hari Ini"], ["rekap", "Rekap Presensi"],
+  ["pegawai", "Akun Guru"], ["presensiset", "Pengaturan Presensi"], ["pengaturan", "Pengaturan Website"]];
 
 async function count(col, ...w) {
   try { return (await getCountFromServer(w.length ? query(collection(db, col), ...w) : collection(db, col))).data().count; } catch { return 0; }
@@ -173,6 +175,10 @@ async function renderTab() {
     else if (COLS[state.tab]) await tabCrud(main, state.tab);
     else if (state.tab === "ppdb") await tabPpdb(main);
     else if (state.tab === "pesan") await tabPesan(main);
+    else if (state.tab === "presensi") await P.hari(main);
+    else if (state.tab === "rekap") await P.rekap(main);
+    else if (state.tab === "pegawai") await P.pegawai(main);
+    else if (state.tab === "presensiset") await P.setelan(main);
     else if (state.tab === "pengaturan") await tabSettings(main);
   } catch (e) { console.error(e); main.innerHTML = `<div class="alert warn">${esc(errMsg(e))}</div>`; }
 }
@@ -313,6 +319,9 @@ async function tabSettings(main) {
     btn.disabled = false;
   });
 }
+
+/* ---------- Presensi (modul terpisah) ---------- */
+const P = presensiTabs({ fieldHTML, readForm, modal, errMsg, wireImages, refresh: () => renderTab() });
 
 /* ---------- Start ---------- */
 if (!configured) viewSetup();

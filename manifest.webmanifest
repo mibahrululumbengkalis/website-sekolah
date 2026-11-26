@@ -8,6 +8,9 @@
   "background_color": "#f6faf7",
   "theme_color": "#0f6b4f",
   "lang": "id",
+  "shortcuts": [
+    { "name": "Presensi Guru", "short_name": "Presensi", "url": "./presensi.html" }
+  ],
   "icons": [
     { "src": "icons/icon.svg", "sizes": "192x192 512x512", "type": "image/svg+xml", "purpose": "any" },
     { "src": "icons/icon-maskable.svg", "sizes": "192x192 512x512", "type": "image/svg+xml", "purpose": "maskable" }

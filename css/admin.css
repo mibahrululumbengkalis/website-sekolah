@@ -39,3 +39,12 @@ table.t img{width:48px;height:48px;border-radius:8px;object-fit:cover}
   .side{position:static;height:auto}
   .side nav{grid-template-columns:repeat(2,1fr)}
 }
+.print-only{display:none}
+@media print{
+  body.admin{background:#fff}
+  .side,.noprint,.top .btn,.acts.noprint{display:none!important}
+  .shell{display:block}.main{padding:0}
+  .print-only{display:block;margin:0 0 12px}
+  .tbl-wrap{border:0;overflow:visible}
+  table.t{font-size:11px}table.t th,table.t td{border:1px solid #999;padding:5px 6px}
+}

@@ -6,8 +6,28 @@ service cloud.firestore {
       return request.auth != null &&
         exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
+    // Guru/pegawai: punya dokumen pegawai/{uid} dan berstatus aktif
+    function isPegawai() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/pegawai/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/pegawai/$(request.auth.uid)).data.aktif == true;
+    }
     function strOk(v, max) { return v is string && v.size() > 0 && v.size() <= max; }
     function strOpt(v, max) { return v is string && v.size() <= max; }
+
+    // Tanggal hari ini menurut server, zona WIB (UTC+7), format YYYY-MM-DD
+    function pad2(n) { return n < 10 ? '0' + string(n) : string(n); }
+    function wibToday() {
+      return string((request.time + duration.time(7, 0, 0, 0)).year()) + '-' +
+             pad2((request.time + duration.time(7, 0, 0, 0)).month()) + '-' +
+             pad2((request.time + duration.time(7, 0, 0, 0)).day());
+    }
+    // Bagian posisi pada presensi (waktu wajib waktu server)
+    function validPos(m) {
+      return m.keys().hasOnly(['waktu', 'lat', 'lng', 'akurasi', 'jarak'])
+        && m.waktu == request.time
+        && m.lat is number && m.lng is number && m.akurasi is number && m.jarak is number;
+    }
 
     // Daftar admin: dibuat manual lewat Firebase Console (dokumen id = UID akun admin)
     match /admins/{uid} {
@@ -51,6 +71,58 @@ service cloud.firestore {
         && strOpt(request.resource.data.catatan, 500)
         && request.resource.data.status == 'baru'
         && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Akun presensi guru: admin mengelola; guru hanya membaca dokumennya sendiri
+    match /pegawai/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow write: if isAdmin();
+    }
+
+    // Presensi: id dokumen = {uid}_{YYYY-MM-DD}
+    match /presensi/{id} {
+      allow get: if isAdmin() || (request.auth != null && id.matches(request.auth.uid + '_.*'));
+      allow list: if isAdmin() || (request.auth != null && resource.data.uid == request.auth.uid);
+
+      // Presensi masuk atau pengajuan izin/sakit/dinas: hanya untuk hari ini (WIB), sekali per hari
+      allow create: if isAdmin() || (isPegawai()
+        && request.resource.data.uid == request.auth.uid
+        && id == request.auth.uid + '_' + request.resource.data.tanggal
+        && request.resource.data.tanggal == wibToday()
+        && request.resource.data.nama == get(/databases/$(database)/documents/pegawai/$(request.auth.uid)).data.nama
+        && (
+          (request.resource.data.status == 'hadir'
+            && request.resource.data.keys().hasOnly(['uid','nama','tanggal','status','masuk'])
+            && validPos(request.resource.data.masuk))
+          ||
+          (request.resource.data.status in ['izin','sakit','dinas']
+            && request.resource.data.keys().hasOnly(['uid','nama','tanggal','status','ket'])
+            && strOk(request.resource.data.ket, 300))
+        ));
+
+      // Presensi pulang: hanya menambah field "pulang" pada catatan hadir hari ini
+      allow update: if isAdmin() || (isPegawai()
+        && resource.data.uid == request.auth.uid
+        && resource.data.status == 'hadir'
+        && !('pulang' in resource.data)
+        && resource.data.tanggal == wibToday()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pulang'])
+        && validPos(request.resource.data.pulang));
+
+      allow delete: if isAdmin();
+    }
+
+    // Foto selfie presensi: guru hanya boleh membuat (tidak bisa membaca/mengubah); admin membaca/menghapus
+    match /presensi_foto/{id} {
+      allow create: if isPegawai()
+        && request.resource.data.keys().hasOnly(['uid','tanggal','jenis','foto','waktu'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.jenis in ['masuk','pulang']
+        && request.resource.data.tanggal == wibToday()
+        && id == request.auth.uid + '_' + request.resource.data.tanggal + '_' + request.resource.data.jenis
+        && request.resource.data.waktu == request.time
+        && strOk(request.resource.data.foto, 120000);
       allow read, update, delete: if isAdmin();
     }
   }

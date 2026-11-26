@@ -31,6 +31,23 @@ Foto dikompres otomatis di browser dan disimpan di Firestore, jadi **Firebase St
 
 Buka `/admin.html`, login, lalu isi **Pengaturan Website** (identitas, sambutan, kontak, PPDB), kemudian guru, galeri, pengumuman, fasilitas, dan program.
 
+## Presensi guru
+
+Halaman guru: `/presensi.html` (bisa dipasang ke layar utama HP). Panel admin punya menu **Presensi Hari Ini**, **Rekap Presensi**, **Akun Guru**, dan **Pengaturan Presensi**.
+
+**Persiapan (sekali saja)**
+1. **Publish ulang `firestore.rules`** di Firebase Console (rules presensi sudah ditambahkan).
+2. Admin > **Pengaturan Presensi**: isi jam masuk/pulang, hari kerja, tanggal libur, lalu klik **Gunakan lokasi saya sekarang** saat berada di madrasah, atur radius, dan **Simpan**.
+3. Admin > **Akun Guru** > **Tambah akun guru** (nama, email, kata sandi awal, tanggal mulai).
+4. Guru login di `presensi.html`, lalu **Presensi Masuk** (GPS + selfie) dan **Presensi Pulang**. Izin/sakit/dinas luar diajukan dari halaman yang sama.
+
+**Aturan yang berlaku**
+- Waktu presensi memakai jam server (WIB), bukan jam HP. Tanggal HP yang salah membuat presensi ditolak.
+- Terlambat = masuk setelah jam masuk + toleransi. Alpa = hari kerja tanpa catatan (libur dan sebelum tanggal mulai tidak dihitung; hari ini dihitung setelah jam pulang).
+- Selfie disimpan terpisah (`presensi_foto`) dan hanya dapat dibaca admin. Gunakan **Hapus foto lama** di Pengaturan Presensi untuk menghemat kuota.
+- Verifikasi lokasi dilakukan di aplikasi guru dan **dapat dikelabui** aplikasi lokasi palsu. Jarak dan akurasi GPS disimpan untuk pemeriksaan. Foto selfie dan lokasi adalah data pribadi guru: beri tahu guru tujuan dan lama penyimpanannya.
+- Admin dapat mengoreksi atau menginput presensi manual (Presensi Hari Ini atau Detail di Rekap).
+
 ## Struktur data Firestore
 
 | Koleksi | Isi | Baca | Tulis |
@@ -40,6 +57,9 @@ Buka `/admin.html`, login, lalu isi **Pengaturan Website** (identitas, sambutan,
 | `ppdb` | pendaftar | admin | pengunjung (hanya buat, tervalidasi) |
 | `pesan` | pesan kontak | admin | pengunjung (hanya buat, tervalidasi) |
 | `admins` | UID admin | akun sendiri | tidak bisa dari aplikasi |
+| `pegawai` | akun guru (presensi) | admin / guru sendiri | admin |
+| `presensi` | catatan presensi `{uid}_{tanggal}` | admin / guru sendiri | guru: masuk, pulang, izin hari ini; admin: semua |
+| `presensi_foto` | selfie presensi | admin | guru: hanya buat |
 
 ## Keamanan & batasan yang perlu diketahui
 

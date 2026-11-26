@@ -44,7 +44,7 @@ function applyBrand() {
     .filter(([, u]) => safeUrl(u)).map(([n, u]) => `<li><a href="${esc(safeUrl(u))}" target="_blank" rel="noopener">${n}</a></li>`).join("");
   $("#footer").innerHTML = `<div class="wrap"><div class="foot">
     <div><h4>${esc(s.nama)}</h4><p>${esc(s.tagline || "")}</p>${s.alamat ? `<p class="small">${esc(s.alamat)}</p>` : ""}</div>
-    <div><h4>Menu</h4><ul><li><a href="#/profil">Profil</a></li><li><a href="#/guru">Guru & Staf</a></li><li><a href="#/galeri">Galeri</a></li><li><a href="#/pengumuman">Pengumuman</a></li><li><a href="#/ppdb">PPDB</a></li></ul></div>
+    <div><h4>Menu</h4><ul><li><a href="#/profil">Profil</a></li><li><a href="#/guru">Guru & Staf</a></li><li><a href="#/galeri">Galeri</a></li><li><a href="#/pengumuman">Pengumuman</a></li><li><a href="#/ppdb">PPDB</a></li><li><a href="presensi.html">Presensi Guru</a></li></ul></div>
     <div><h4>Hubungi Kami</h4><ul>${s.telp ? `<li>☎ ${esc(s.telp)}</li>` : ""}${wa ? `<li><a href="${wa}" target="_blank" rel="noopener">WhatsApp</a></li>` : ""}${s.email ? `<li>✉ ${esc(s.email)}</li>` : ""}${sosmed}</ul></div>
   </div><div class="copy">© ${new Date().getFullYear()} ${esc(s.nama)}. Hak cipta dilindungi.</div></div>`;
 }
