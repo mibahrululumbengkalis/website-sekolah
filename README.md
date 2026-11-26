@@ -74,3 +74,9 @@ Halaman guru: `/presensi.html` (bisa dipasang ke layar utama HP). Panel admin pu
 ```bash
 python3 -m http.server 8000   # lalu buka http://localhost:8000
 ```
+
+## Pembaruan tampilan (tema hijau + emas)
+- Halaman publik: hero slider, statistik, sambutan, berita (carousel + detail), pengumuman (panel + jendela detail), program, galeri gelap, profil bertab, guru dengan filter/cari, kontak, footer.
+- Admin baru: tab **Berita** dan **Slide Beranda**; pengaturan **warna utama/aksen**, **sub nama**, statistik ekskul; guru punya **kategori** (Guru/Staf); pengumuman punya penulis/label/tautan.
+- Wajib **Publish ulang `firestore.rules`** (koleksi `berita`, `slider`, kolom `telp`/`subjek` pada pesan).
+- Berita/pengumuman/galeri wajib punya tanggal agar tampil.

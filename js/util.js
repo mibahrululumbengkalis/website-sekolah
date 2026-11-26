@@ -10,6 +10,12 @@ export function safeUrl(u) {
   return /^(https?:\/\/|data:image\/(png|jpe?g|webp|gif);base64,)/i.test(u) ? u : "";
 }
 
+/** Tautan eksternal: hanya http(s) */
+export function safeLink(u) {
+  u = String(u || "").trim();
+  return /^https?:\/\//i.test(u) ? u : "";
+}
+
 /** Teks multi-baris -> paragraf aman */
 export const nl2p = t => String(t || "").split(/\n{2,}|\r\n\r\n/).map(p => p.trim()).filter(Boolean)
   .map(p => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("");

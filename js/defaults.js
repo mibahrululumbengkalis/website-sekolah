@@ -6,6 +6,8 @@ export const DEFAULT_SETTINGS = {
   heroJudul: "Mencetak Generasi Cerdas, Berakhlak, dan Berprestasi",
   heroSub: "Selamat datang di website resmi MI Bahrul Ulum. Temukan informasi madrasah, kegiatan, pengumuman, dan pendaftaran peserta didik baru.",
   heroGambar: "",
+  subjudul: "Madrasah Ibtidaiyah",
+  warnaUtama: "#0f6b4f", warnaAksen: "#f5b82e",
   logo: "",
   sambutanNama: "Kepala Madrasah",
   sambutanJudul: "Mewujudkan Pendidikan Dasar yang Islami dan Berkualitas",
@@ -16,7 +18,7 @@ export const DEFAULT_SETTINGS = {
   sejarah: "",
   npsn: "", nsm: "", akreditasi: "", kepala: "", tahunBerdiri: "",
   statusSekolah: "Swasta", kurikulum: "Kurikulum Merdeka",
-  statSiswa: "", statGuru: "", statRombel: "", statPrestasi: "",
+  statSiswa: "", statGuru: "", statRombel: "", statEkskul: "",
   alamat: "", telp: "", wa: "", email: "", jam: "Senin – Sabtu, 07.00 – 13.00 WIB",
   mapEmbed: "", facebook: "", instagram: "", youtube: "",
   ppdbBuka: true, ppdbTahun: "2027/2028", ppdbKuota: "",
@@ -41,13 +43,20 @@ export const DEFAULT_FASILITAS = [
 
 // Hanya dipakai pada MODE DEMO (Firebase belum dikonfigurasi)
 export const DEMO = {
+  slider: [
+    { id: "s1", judul: "Selamat Datang di MI Bahrul Ulum", sub: "Contoh slide. Kelola slide beranda dari panel admin.", gambar: "", urutan: 1 }
+  ],
+  berita: [
+    { id: "b1", judul: "Contoh: Kegiatan Pembiasaan Pagi", tanggal: "2026-11-20", kategori: "Kegiatan", ringkasan: "Data contoh untuk melihat tampilan berita.", isi: "Ini adalah data contoh. Berita asli dikelola dari panel admin.", gambar: "", penulis: "Admin" },
+    { id: "b2", judul: "Contoh: Lomba Antar Kelas", tanggal: "2026-11-12", kategori: "Prestasi", ringkasan: "Contoh ringkasan berita.", isi: "Isi berita contoh.", gambar: "", penulis: "Admin" }
+  ],
   pengumuman: [
-    { id: "d1", judul: "Contoh: Jadwal Penilaian Akhir Semester", tanggal: "2026-11-20", isi: "Ini adalah data contoh. Pengumuman asli dikelola dari panel admin setelah Firebase dikonfigurasi.", gambar: "" },
-    { id: "d2", judul: "Contoh: Pendaftaran Peserta Didik Baru Dibuka", tanggal: "2026-11-10", isi: "Data contoh untuk melihat tampilan daftar pengumuman.", gambar: "" }
+    { id: "d1", judul: "Contoh: Jadwal Penilaian Akhir Semester", tanggal: "2026-11-20", isi: "Ini adalah data contoh. Pengumuman asli dikelola dari panel admin.", gambar: "", penulis: "Admin", tag: "Akademik", tautan: "", labelTautan: "" },
+    { id: "d2", judul: "Contoh: Pendaftaran Peserta Didik Baru Dibuka", tanggal: "2026-11-10", isi: "Data contoh untuk melihat tampilan daftar pengumuman.", gambar: "", penulis: "Panitia", tag: "PPDB", tautan: "", labelTautan: "" }
   ],
   guru: [
-    { id: "g1", nama: "Nama Guru (contoh)", jabatan: "Guru Kelas", mapel: "Kelas 1", foto: "", urutan: 1 },
-    { id: "g2", nama: "Nama Guru (contoh)", jabatan: "Guru Mapel", mapel: "Bahasa Arab", foto: "", urutan: 2 }
+    { id: "g1", nama: "Nama Guru (contoh)", jabatan: "Guru Kelas", mapel: "Kelas 1", kategori: "Guru", foto: "", urutan: 1 },
+    { id: "g2", nama: "Nama Staf (contoh)", jabatan: "Tenaga Kependidikan", mapel: "Administrasi", kategori: "Staf", foto: "", urutan: 2 }
   ],
   galeri: [
     { id: "k1", judul: "Contoh Kegiatan Belajar", tanggal: "2026-11-05", deskripsi: "", foto: "" },

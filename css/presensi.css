@@ -3,23 +3,23 @@ body.pres{background:#eef4f0}
 .p-login{margin-top:8vh}
 .p-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
 .p-head h1{font-size:1.1rem;margin:0}.p-head small{color:var(--mute)}
-.clock{background:linear-gradient(135deg,var(--green-d),var(--green));color:#fff;border-radius:20px;padding:22px;text-align:center;box-shadow:var(--shadow)}
+.clock{background:linear-gradient(135deg,var(--pri-d),var(--pri));color:#fff;border-radius:20px;padding:22px;text-align:center;box-shadow:var(--shadow)}
 .clock .time{font-size:2.6rem;font-weight:800;letter-spacing:.02em;line-height:1.1}
 .clock .date{opacity:.9;margin-top:4px}
 .clock .rule{margin-top:10px;font-size:.82rem;opacity:.85}
 .stat-card{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}
 .stat-card h3{margin:0 0 10px;font-size:.95rem;color:var(--mute);font-weight:600}
 .srow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.sbox{background:var(--green-l);border-radius:12px;padding:12px;text-align:center}
-.sbox b{display:block;font-size:1.3rem;color:var(--green-d)}.sbox span{font-size:.78rem;color:var(--mute)}
+.sbox{background:var(--pri-l);border-radius:12px;padding:12px;text-align:center}
+.sbox b{display:block;font-size:1.3rem;color:var(--pri-d)}.sbox span{font-size:.78rem;color:var(--mute)}
 .acts-col{display:grid;gap:10px;margin-top:14px}
 .btn-lg{padding:16px 22px;font-size:1.05rem;border-radius:14px;width:100%}
-.btn-out{background:#fff;color:var(--green);border:1.5px solid var(--green)}.btn-out:hover{background:var(--green-l)}
+.btn-out{background:#fff;color:var(--pri);border:1.5px solid var(--pri)}.btn-out:hover{background:var(--pri-l)}
 .hist{margin-top:18px}
 .hist h3{margin:0 0 8px}
 .hrow{display:flex;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:8px;font-size:.9rem}
 .hrow small{color:var(--mute);display:block}
-.pill{padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:700;background:var(--green-l);color:var(--green);white-space:nowrap;align-self:center}
+.pill{padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:700;background:var(--pri-l);color:var(--pri);white-space:nowrap;align-self:center}
 .pill.terlambat{background:#fff3cd;color:#664d03}.pill.izin,.pill.sakit,.pill.dinas{background:#e3ecfb;color:#1c4a99}.pill.alpa{background:#fde8e6;color:var(--red)}
 .cam{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:100;display:grid;place-items:center;padding:16px}
 .cam .box{background:#fff;border-radius:18px;padding:16px;width:min(420px,100%)}

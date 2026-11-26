@@ -13,13 +13,19 @@ const state = { user: null, tab: "dashboard", counts: {} };
 const COLS = {
   pengumuman: { label: "Pengumuman", cols: ["tanggal", "judul"], sort: (a, b) => String(b.tanggal).localeCompare(String(a.tanggal)),
     init: () => ({ tanggal: today() }),
-    fields: [{ k: "judul", l: "Judul", req: 1 }, { k: "tanggal", l: "Tanggal", t: "date", req: 1 }, { k: "isi", l: "Isi pengumuman", t: "textarea", req: 1 }, { k: "gambar", l: "Gambar (opsional)", t: "image", w: 1000 }] },
-  guru: { label: "Guru & Staf", cols: ["foto", "nama", "jabatan", "urutan"], sort: (a, b) => (a.urutan || 0) - (b.urutan || 0),
+    fields: [{ k: "judul", l: "Judul", req: 1 }, { k: "tanggal", l: "Tanggal", t: "date", req: 1 }, { k: "isi", l: "Isi pengumuman", t: "textarea", req: 1 }, { k: "penulis", l: "Penulis (mis. Panitia)" }, { k: "tag", l: "Label (mis. Akademik, PPDB)" }, { k: "tautan", l: "Tautan terkait (https://…, opsional)" }, { k: "labelTautan", l: "Teks tombol tautan (mis. Lihat Info)" }, { k: "gambar", l: "Gambar (opsional)", t: "image", w: 800, lim: 150000 }] },
+  berita: { label: "Berita", cols: ["gambar", "tanggal", "judul", "kategori"], sort: (a, b) => String(b.tanggal).localeCompare(String(a.tanggal)),
+    init: () => ({ tanggal: today(), penulis: "Admin" }),
+    fields: [{ k: "judul", l: "Judul", req: 1 }, { k: "tanggal", l: "Tanggal", t: "date", req: 1 }, { k: "kategori", l: "Kategori (mis. Kegiatan, Prestasi)" }, { k: "penulis", l: "Penulis" }, { k: "ringkasan", l: "Ringkasan singkat", t: "textarea", rows: 3 }, { k: "isi", l: "Isi berita (pisahkan paragraf dengan baris kosong)", t: "textarea", rows: 10, req: 1 }, { k: "gambar", l: "Gambar utama", t: "image", w: 1000, lim: 200000 }] },
+  slider: { label: "Slide Beranda", cols: ["gambar", "judul", "urutan"], sort: (a, b) => (a.urutan || 0) - (b.urutan || 0),
     init: () => ({ urutan: 1 }),
-    fields: [{ k: "nama", l: "Nama lengkap", req: 1 }, { k: "jabatan", l: "Jabatan (mis. Guru Kelas)", req: 1 }, { k: "mapel", l: "Mapel / kelas" }, { k: "urutan", l: "Urutan tampil", t: "number" }, { k: "foto", l: "Foto", t: "image", w: 500 }] },
+    fields: [{ k: "judul", l: "Judul slide", req: 1 }, { k: "sub", l: "Keterangan singkat", t: "textarea", rows: 3 }, { k: "urutan", l: "Urutan tampil", t: "number" }, { k: "gambar", l: "Gambar latar (disarankan lanskap)", t: "image", w: 1400, q: .65, lim: 220000 }] },
+  guru: { label: "Guru & Staf", cols: ["foto", "nama", "jabatan", "urutan"], sort: (a, b) => (a.urutan || 0) - (b.urutan || 0),
+    init: () => ({ urutan: 1, kategori: "Guru" }),
+    fields: [{ k: "nama", l: "Nama lengkap", req: 1 }, { k: "jabatan", l: "Jabatan (mis. Guru Kelas)", req: 1 }, { k: "kategori", l: "Kategori", t: "select", opts: ["Guru", "Staf"] }, { k: "mapel", l: "Mapel / kelas" }, { k: "urutan", l: "Urutan tampil", t: "number" }, { k: "foto", l: "Foto", t: "image", w: 500 }] },
   galeri: { label: "Galeri", cols: ["foto", "judul", "tanggal"], sort: (a, b) => String(b.tanggal).localeCompare(String(a.tanggal)),
     init: () => ({ tanggal: today() }),
-    fields: [{ k: "judul", l: "Judul kegiatan", req: 1 }, { k: "tanggal", l: "Tanggal", t: "date" }, { k: "deskripsi", l: "Keterangan", t: "textarea" }, { k: "foto", l: "Foto", t: "image", w: 1000, req: 1 }] },
+    fields: [{ k: "judul", l: "Judul kegiatan", req: 1 }, { k: "tanggal", l: "Tanggal", t: "date", req: 1 }, { k: "deskripsi", l: "Keterangan", t: "textarea" }, { k: "foto", l: "Foto", t: "image", w: 1000, req: 1 }] },
   fasilitas: { label: "Fasilitas", cols: ["foto", "nama", "urutan"], sort: (a, b) => (a.urutan || 0) - (b.urutan || 0),
     init: () => ({ urutan: 1 }),
     fields: [{ k: "nama", l: "Nama fasilitas", req: 1 }, { k: "deskripsi", l: "Deskripsi", t: "textarea" }, { k: "urutan", l: "Urutan tampil", t: "number" }, { k: "foto", l: "Foto", t: "image", w: 800 }] },
@@ -31,7 +37,8 @@ const COLS = {
 const SETTINGS = [
   { g: "Identitas & Beranda", f: [
     { k: "nama", l: "Nama madrasah", req: 1 }, { k: "tagline", l: "Tagline" }, { k: "logo", l: "Logo", t: "image", w: 256, lim: 60000 },
-    { k: "heroJudul", l: "Judul besar beranda" }, { k: "heroSub", l: "Sub judul beranda", t: "textarea" },
+    { k: "subjudul", l: "Sub nama (mis. Madrasah Ibtidaiyah)" }, { k: "warnaUtama", l: "Warna utama (kode hex, mis. #0f6b4f)" }, { k: "warnaAksen", l: "Warna aksen (kode hex, mis. #f5b82e)" },
+    { k: "heroJudul", l: "Judul besar beranda (dipakai bila belum ada Slide)" }, { k: "heroSub", l: "Sub judul beranda", t: "textarea" },
     { k: "heroGambar", l: "Gambar latar beranda", t: "image", w: 1400, q: .65, lim: 220000 }] },
   { g: "Sambutan Kepala Madrasah", f: [
     { k: "kepala", l: "Nama kepala madrasah" }, { k: "sambutanNama", l: "Sebutan jabatan" }, { k: "sambutanJudul", l: "Judul sambutan" },
@@ -43,7 +50,7 @@ const SETTINGS = [
     { k: "npsn", l: "NPSN" }, { k: "nsm", l: "NSM" }, { k: "akreditasi", l: "Akreditasi" }, { k: "tahunBerdiri", l: "Tahun berdiri" },
     { k: "statusSekolah", l: "Status (Negeri/Swasta)" }, { k: "kurikulum", l: "Kurikulum" }] },
   { g: "Statistik Beranda (kosongkan untuk menyembunyikan)", f: [
-    { k: "statSiswa", l: "Jumlah peserta didik" }, { k: "statGuru", l: "Jumlah guru & staf" }, { k: "statRombel", l: "Jumlah rombel" }, { k: "statPrestasi", l: "Jumlah prestasi" }] },
+    { k: "statSiswa", l: "Jumlah peserta didik" }, { k: "statGuru", l: "Jumlah guru & staf" }, { k: "statRombel", l: "Jumlah rombel" }, { k: "statEkskul", l: "Jumlah ekstrakurikuler" }] },
   { g: "Kontak & Media Sosial", f: [
     { k: "alamat", l: "Alamat lengkap", t: "textarea" }, { k: "telp", l: "Telepon" }, { k: "wa", l: "WhatsApp (mis. 081234567890)" }, { k: "email", l: "Email" },
     { k: "jam", l: "Jam layanan" }, { k: "mapEmbed", l: "URL embed Google Maps (opsional; jika kosong dipakai alamat)" },
@@ -60,6 +67,7 @@ function fieldHTML(f, v) {
   const req = f.req ? " required" : "";
   const lab = `${esc(f.l)}${f.req ? ' <span class="req">*</span>' : ""}`;
   if (f.t === "textarea") return `<label class="f">${lab}<textarea name="${f.k}" rows="${f.rows || 4}"${req}>${esc(val)}</textarea></label>`;
+  if (f.t === "select") return `<label class="f">${lab}<select name="${f.k}">${f.opts.map(o => `<option ${String(val) === o ? "selected" : ""}>${esc(o)}</option>`).join("")}</select></label>`;
   if (f.t === "checkbox") return `<label class="f"><input type="checkbox" name="${f.k}" ${val ? "checked" : ""}>${lab}</label>`;
   if (f.t === "image") {
     const u = safeUrl(val);
@@ -140,7 +148,7 @@ function viewDenied(user) {
 }
 
 /* ---------- Shell ---------- */
-const TABS = [["dashboard", "Dashboard"], ["pengumuman", "Pengumuman"], ["guru", "Guru & Staf"], ["galeri", "Galeri"], ["fasilitas", "Fasilitas"],
+const TABS = [["dashboard", "Dashboard"], ["berita", "Berita"], ["pengumuman", "Pengumuman"], ["slider", "Slide Beranda"], ["guru", "Guru & Staf"], ["galeri", "Galeri"], ["fasilitas", "Fasilitas"],
   ["program", "Program"], ["ppdb", "Pendaftar PPDB"], ["pesan", "Pesan Masuk"], ["presensi", "Presensi Hari Ini"], ["rekap", "Rekap Presensi"],
   ["pegawai", "Akun Guru"], ["presensiset", "Pengaturan Presensi"], ["pengaturan", "Pengaturan Website"]];
 
@@ -280,15 +288,15 @@ async function tabPpdb(main) {
 /* ---------- Tab: Pesan ---------- */
 async function tabPesan(main) {
   const rows = (await listCol("pesan")).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-  main.innerHTML = `<div class="top"><h1>Pesan Masuk</h1></div><div class="tbl-wrap">${rows.length ? `<table class="t"><thead><tr><th>Tanggal</th><th>Nama</th><th>Email</th><th>Pesan</th><th></th></tr></thead><tbody>
-    ${rows.map(r => `<tr class="${r.dibaca ? "" : "unread"}"><td>${esc(fmtDate(r.createdAt))}</td><td>${esc(r.nama)}</td><td>${esc(r.email || "–")}</td><td>${esc(String(r.pesan || "").slice(0, 70))}${String(r.pesan || "").length > 70 ? "…" : ""}</td>
+  main.innerHTML = `<div class="top"><h1>Pesan Masuk</h1></div><div class="tbl-wrap">${rows.length ? `<table class="t"><thead><tr><th>Tanggal</th><th>Nama</th><th>Kontak</th><th>Pesan</th><th></th></tr></thead><tbody>
+    ${rows.map(r => `<tr class="${r.dibaca ? "" : "unread"}"><td>${esc(fmtDate(r.createdAt))}</td><td>${esc(r.nama)}</td><td>${esc(r.email || r.telp || "–")}</td><td>${r.subjek ? "<b>" + esc(r.subjek) + "</b> · " : ""}${esc(String(r.pesan || "").slice(0, 70))}${String(r.pesan || "").length > 70 ? "…" : ""}</td>
       <td><div class="acts"><button class="btn btn-ghost btn-sm" data-v="${esc(r.id)}">Baca</button><button class="btn btn-danger btn-sm" data-d="${esc(r.id)}">Hapus</button></div></td></tr>`).join("")}
     </tbody></table>` : `<div class="empty" style="border:0">Belum ada pesan.</div>`}</div>`;
   main.addEventListener("click", async e => {
     const v = e.target.closest("[data-v]"), d = e.target.closest("[data-d]");
     if (v) {
       const r = rows.find(x => x.id === v.dataset.v);
-      const m = modal(`<h3>Pesan dari ${esc(r.nama)}</h3><p class="muted small">${esc(fmtDate(r.createdAt))}${r.email ? " · " + esc(r.email) : ""}</p><p style="white-space:pre-wrap">${esc(r.pesan)}</p><div class="btns"><button class="btn" data-x>Tutup</button></div>`);
+      const m = modal(`<h3>Pesan dari ${esc(r.nama)}</h3><p class="muted small">${esc(fmtDate(r.createdAt))}${r.email ? " · " + esc(r.email) : ""}${r.telp ? " · " + esc(r.telp) : ""}</p>${r.subjek ? `<p><b>${esc(r.subjek)}</b></p>` : ""}<p style="white-space:pre-wrap">${esc(r.pesan)}</p><div class="btns"><button class="btn" data-x>Tutup</button></div>`);
       m.querySelector("[data-x]").addEventListener("click", () => m.remove());
       if (!r.dibaca) { try { await updateDoc(doc(db, "pesan", r.id), { dibaca: true }); r.dibaca = true; v.closest("tr").classList.remove("unread"); await loadCounts(); } catch (err) { toast(errMsg(err), "err"); } }
     }

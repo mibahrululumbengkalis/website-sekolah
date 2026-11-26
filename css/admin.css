@@ -2,11 +2,11 @@ body.admin{background:#f1f5f3}
 .login{max-width:400px;margin:10vh auto;padding:0 20px}
 .login .card-body{padding:28px}
 .shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
-.side{background:var(--green-d);color:#fff;padding:20px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.side{background:var(--pri-d);color:#fff;padding:20px 14px;position:sticky;top:0;height:100vh;overflow:auto}
 .side h2{font-size:1.05rem;color:#fff;padding:0 10px 14px;margin:0;border-bottom:1px solid rgba(255,255,255,.15)}
 .side nav{display:grid;gap:3px;margin-top:12px}
 .side a{color:#d6eadf;text-decoration:none;padding:10px 12px;border-radius:10px;font-weight:600;font-size:.92rem;display:flex;justify-content:space-between;gap:8px}
-.side a:hover{background:rgba(255,255,255,.1)}.side a.on{background:var(--gold);color:#3a2a00}
+.side a:hover{background:rgba(255,255,255,.1)}.side a.on{background:var(--acc);color:#3a2a00}
 .side .cnt{background:var(--red);color:#fff;border-radius:99px;padding:0 8px;font-size:.75rem;line-height:1.7}
 .side .foot-links{margin-top:20px;border-top:1px solid rgba(255,255,255,.15);padding-top:12px;display:grid;gap:3px}
 .main{padding:26px clamp(16px,3vw,36px) 60px;min-width:0}
@@ -14,11 +14,11 @@ body.admin{background:#f1f5f3}
 .top h1{font-size:1.5rem;margin:0}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
 .kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px}
-.kpi b{font-size:2rem;color:var(--green);display:block;line-height:1.1}.kpi span{color:var(--mute);font-size:.85rem}
+.kpi b{font-size:2rem;color:var(--pri);display:block;line-height:1.1}.kpi span{color:var(--mute);font-size:.85rem}
 .tbl-wrap{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:auto}
 table.t{width:100%;border-collapse:collapse;font-size:.92rem}
 table.t th,table.t td{padding:11px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-table.t th{background:var(--green-l);color:var(--green-d);font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
+table.t th{background:var(--pri-l);color:var(--pri-d);font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
 table.t tr:last-child td{border:0}
 table.t img{width:48px;height:48px;border-radius:8px;object-fit:cover}
 .acts{display:flex;gap:6px;flex-wrap:nowrap}
@@ -28,8 +28,8 @@ table.t img{width:48px;height:48px;border-radius:8px;object-fit:cover}
 .modal .btns{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
 .imgf .prev{width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-top:8px;display:block}
 .settings-grp{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:18px}
-.settings-grp h3{margin-bottom:14px;color:var(--green-d)}
-.pill{padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:700;background:var(--green-l);color:var(--green)}
+.settings-grp h3{margin-bottom:14px;color:var(--pri-d)}
+.pill{padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:700;background:var(--pri-l);color:var(--pri)}
 .pill.baru{background:#fff3cd;color:#664d03}.pill.diterima{background:#e0f5e9;color:#0a7a3d}.pill.ditolak{background:#fde8e6;color:var(--red)}
 .unread td{font-weight:700;background:#fffdf3}
 .detail dl{display:grid;grid-template-columns:150px 1fr;gap:8px 14px;margin:0}.detail dt{color:var(--mute);font-weight:600}.detail dd{margin:0}

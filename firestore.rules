@@ -37,6 +37,8 @@ service cloud.firestore {
 
     // Konten publik: semua orang boleh membaca, hanya admin yang boleh menulis
     match /settings/{id}   { allow read: if true; allow write: if isAdmin(); }
+    match /berita/{id}     { allow read: if true; allow write: if isAdmin(); }
+    match /slider/{id}     { allow read: if true; allow write: if isAdmin(); }
     match /pengumuman/{id} { allow read: if true; allow write: if isAdmin(); }
     match /guru/{id}       { allow read: if true; allow write: if isAdmin(); }
     match /galeri/{id}     { allow read: if true; allow write: if isAdmin(); }
@@ -45,7 +47,9 @@ service cloud.firestore {
 
     // Pesan kontak: pengunjung hanya boleh membuat; admin yang membaca/mengelola
     match /pesan/{id} {
-      allow create: if request.resource.data.keys().hasOnly(['nama','email','pesan','dibaca','createdAt'])
+      allow create: if request.resource.data.keys().hasOnly(['nama','email','telp','subjek','pesan','dibaca','createdAt'])
+        && strOpt(request.resource.data.get('telp', ''), 30)
+        && strOpt(request.resource.data.get('subjek', ''), 150)
         && strOk(request.resource.data.nama, 100)
         && strOpt(request.resource.data.email, 120)
         && strOk(request.resource.data.pesan, 1500)

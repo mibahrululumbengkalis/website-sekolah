@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MI Bahrul Ulum</title>
-  <meta name="description" content="Website resmi MI Bahrul Ulum: profil madrasah, guru, galeri, pengumuman, dan pendaftaran peserta didik baru.">
+  <meta name="description" content="Website resmi MI Bahrul Ulum: profil madrasah, guru, berita, galeri, pengumuman, dan pendaftaran peserta didik baru.">
   <meta name="theme-color" content="#0f6b4f">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -18,16 +18,18 @@
   <div id="demo-banner" hidden>Mode demo: Firebase belum dikonfigurasi, data yang tampil hanya contoh dan formulir tidak tersimpan.</div>
   <header class="site-header">
     <div class="wrap bar">
-      <a href="#/" class="brand" id="brand"><span class="brand-logo">🕌</span><span class="brand-text"><strong id="brand-name">MI Bahrul Ulum</strong><small id="brand-tag"></small></span></a>
+      <a href="#/" class="brand" id="brand"><span class="brand-logo">🏫</span><span class="brand-text"><strong id="brand-name">MI Bahrul Ulum</strong><small id="brand-tag"></small></span></a>
       <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
       <nav id="nav" class="nav">
         <a href="#/" data-r="">Beranda</a>
-        <a href="#/profil" data-r="profil">Profil</a>
+        <a href="#/profil" data-r="profil">Profil Madrasah</a>
         <a href="#/guru" data-r="guru">Guru & Staf</a>
+        <a href="#/berita" data-r="berita">Berita</a>
         <a href="#/galeri" data-r="galeri">Galeri</a>
-        <a href="#/pengumuman" data-r="pengumuman">Pengumuman</a>
         <a href="#/kontak" data-r="kontak">Kontak</a>
-        <a href="#/ppdb" data-r="ppdb" class="btn btn-gold btn-sm">Info PPDB</a>
+        <div class="dd" id="dd"><button class="dd-btn" id="dd-btn" aria-expanded="false">Lainnya ▾</button>
+          <div class="dd-menu"><a href="#/pengumuman" data-r="pengumuman">Pengumuman</a><a href="#/ppdb" data-r="ppdb">Info PPDB</a><a href="presensi.html">Presensi Guru</a></div></div>
+        <a href="#/ppdb" class="btn btn-acc btn-sm">Daftar PPDB</a>
         <button id="install" class="btn btn-ghost btn-sm" hidden>Pasang Aplikasi</button>
       </nav>
     </div>
