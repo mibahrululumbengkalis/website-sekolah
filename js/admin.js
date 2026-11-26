@@ -152,6 +152,29 @@ const TABS = [["dashboard", "Dashboard"], ["berita", "Berita"], ["pengumuman", "
   ["program", "Program"], ["ppdb", "Pendaftar PPDB"], ["pesan", "Pesan Masuk"], ["presensi", "Presensi Hari Ini"], ["rekap", "Rekap Presensi"],
   ["pegawai", "Akun Guru"], ["presensiset", "Pengaturan Presensi"], ["pengaturan", "Pengaturan Website"]];
 
+const IC = {
+  dashboard: '<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  berita: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h6M7 12h10M7 16h10"/>',
+  pengumuman: '<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>',
+  slider: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+  guru: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14c2.5 0 4 1.5 4 4"/>',
+  galeri: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M3 17l5-4 4 3 3-3 6 5"/>',
+  fasilitas: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+  program: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
+  ppdb: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3.5-5.5 7-5.5s7 2 7 5.5"/><path d="M19 8v6M16 11h6"/>',
+  pesan: '<path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5A8 8 0 1 1 21 12z"/>',
+  presensi: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  rekap: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 17v-5M12 17V8M16 17v-3"/>',
+  pegawai: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  presensiset: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+  pengaturan: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18"/>',
+  out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+  ext: '<path d="M14 3h7v7M21 3l-9 9M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/>',
+  menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'
+};
+const ico = (k, cls = "") => `<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k] || ""}</svg>`;
+
 async function count(col, ...w) {
   try { return (await getCountFromServer(w.length ? query(collection(db, col), ...w) : collection(db, col))).data().count; } catch { return 0; }
 }
@@ -165,10 +188,21 @@ async function shell() {
   await loadCounts();
   const c = state.counts;
   const badge = k => k === "ppdb" && c.ppdbBaru ? `<span class="cnt">${c.ppdbBaru}</span>` : k === "pesan" && c.pesanBaru ? `<span class="cnt">${c.pesanBaru}</span>` : "";
-  root.innerHTML = `<div class="shell"><aside class="side"><h2><img src="icons/logo-192.png" alt="" style="width:30px;height:30px;vertical-align:middle;margin-right:8px">Admin MI Bahrul Ulum</h2>
-    <nav>${TABS.map(([k, l]) => `<a href="#${k}" data-t="${k}" class="${state.tab === k ? "on" : ""}">${l}${badge(k)}</a>`).join("")}</nav>
-    <div class="foot-links"><a href="index.html" target="_blank" rel="noopener">Lihat website ↗</a><a href="#" id="logout">Keluar</a></div></aside>
-    <main class="main" id="main"></main></div>`;
+  const tglStr = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" }).format(new Date());
+  const mail = (state.user && state.user.email) || "Admin";
+  root.innerHTML = `<div class="shell"><aside class="side" id="side"><div class="brand-a"><img src="icons/logo-192.png" alt=""><h2>Admin MI Bahrul Ulum</h2></div>
+    <nav>${TABS.map(([k, l]) => `<a href="#${k}" data-t="${k}" class="${state.tab === k ? "on" : ""}">${ico(k)}<span>${l}</span>${badge(k)}</a>`).join("")}</nav>
+    <div class="foot-links"><a href="index.html" target="_blank" rel="noopener">${ico("ext")}<span>Lihat website</span></a><a href="#" id="logout">${ico("out")}<span>Keluar</span></a></div></aside>
+    <div class="scrim" id="scrim"></div>
+    <div class="content"><header class="topbar"><button class="menu-btn" id="menu" aria-label="Menu">${ico("menu")}</button><span class="sp"></span>
+      <span class="datepill">${ico("presensi")}<span>${esc(tglStr)}</span></span>
+      <span class="avatar" title="${esc(mail)}">${esc(mail.charAt(0).toUpperCase())}</span></header>
+    <main class="main" id="main"></main></div></div>`;
+  const side = $("#side"), scrim = $("#scrim");
+  const closeNav = () => { side.classList.remove("open"); scrim.classList.remove("on"); };
+  $("#menu").addEventListener("click", () => { side.classList.add("open"); scrim.classList.add("on"); });
+  scrim.addEventListener("click", closeNav);
+  side.addEventListener("click", e => { if (e.target.closest("a[data-t]")) closeNav(); });
   $("#logout").addEventListener("click", e => { e.preventDefault(); signOut(auth); });
   await renderTab();
 }
@@ -198,9 +232,9 @@ window.addEventListener("hashchange", () => {
 /* ---------- Tab: Dashboard ---------- */
 async function tabDashboard(main) {
   const c = state.counts;
-  const k = (n, l) => `<div class="kpi"><b>${n}</b><span>${l}</span></div>`;
+  const k = (n, l, i, c) => `<div class="kpi"><span class="kic" style="color:${c}">${ico(i)}</span><b>${n}</b><span>${l}</span></div>`;
   main.innerHTML = `<div class="top"><h1>Dashboard Ringkasan</h1></div>
-    <div class="kpis">${k(c.peng, "Pengumuman")}${k(c.guru, "Guru & staf")}${k(c.gal, "Foto galeri")}${k(c.ppdb, "Total pendaftar PPDB")}${k(c.ppdbBaru, "Pendaftar baru")}${k(c.pesanBaru, "Pesan belum dibaca")}</div>
+    <div class="kpis">${k(c.peng, "Pengumuman", "pengumuman", "#e8a317")}${k(c.guru, "Guru & staf", "guru", "#e8a317")}${k(c.gal, "Foto galeri", "galeri", "#8e5bd0")}${k(c.ppdb, "Total pendaftar PPDB", "ppdb", "#1b8aa6")}${k(c.ppdbBaru, "Pendaftar baru", "ppdb", "#2e9f5b")}${k(c.pesanBaru, "Pesan belum dibaca", "mail", "#e8a317")}</div>
     <div class="card card-body"><h3>Mulai dari mana?</h3><ol class="list-clean"><li>Lengkapi <a href="#pengaturan">Pengaturan Website</a> (identitas, sambutan, kontak, PPDB).</li><li>Tambahkan data <a href="#guru">guru</a>, <a href="#galeri">galeri</a>, dan <a href="#pengumuman">pengumuman</a>.</li><li>Pantau <a href="#ppdb">pendaftar PPDB</a> dan <a href="#pesan">pesan masuk</a>.</li></ol>
     <p class="muted small" style="margin:0">Foto otomatis dikompres di browser dan disimpan di Firestore (tanpa Firebase Storage).</p></div>`;
 }
