@@ -143,8 +143,8 @@ export function presensiTabs(ctx) {
   }
 
   /* ---- Akun guru ---- */
-  const PERAN = [["guru","Guru"],["kepala","Kepala Madrasah"],["bendahara","Bendahara"],["sarpras","Pengelola Sarpras"],["tendik","Tenaga Kependidikan"]];
-  const peranBox = sel => `<div class="f"><b>Peran</b><div style="margin-top:6px">${PERAN.map(([k, l]) => `<label style="display:inline-flex;gap:6px;align-items:center;margin:0 14px 6px 0;font-weight:500"><input type="checkbox" name="peran" value="${k}" ${(sel || []).includes(k) ? "checked" : ""} style="margin:0">${l}</label>`).join("")}</div><p class="muted small" style="margin:4px 0 0">Kepala/Bendahara/Pengelola Sarpras mendapat menu panel sesuai perannya. Guru dan wali kelas diatur lewat penugasan di bawah.</p></div>`;
+  const PERAN = [["guru","Guru"],["operator","Operator"],["kepala","Kepala Madrasah"],["bendahara","Bendahara"],["sarpras","Pengelola Sarpras"],["tendik","Tenaga Kependidikan"]];
+  const peranBox = sel => `<div class="f"><b>Peran</b><div style="margin-top:6px">${PERAN.map(([k, l]) => `<label style="display:inline-flex;gap:6px;align-items:center;margin:0 14px 6px 0;font-weight:500"><input type="checkbox" name="peran" value="${k}" ${(sel || []).includes(k) ? "checked" : ""} style="margin:0">${l}</label>`).join("")}</div><p class="muted small" style="margin:4px 0 0">Operator/Kepala/Bendahara/Pengelola Sarpras mendapat menu panel sesuai perannya (Operator: data induk, rombel, siswa, akun orang tua, akademik). Guru dan wali kelas diatur lewat penugasan di bawah.</p></div>`;
   async function pegawai(main) {
     const rows = (await listCol("pegawai")).sort((a, b) => a.nama.localeCompare(b.nama));
     main.innerHTML = `<div class="top"><h1>Akun Pegawai</h1><button class="btn" id="add">+ Tambah akun pegawai</button></div>

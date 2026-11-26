@@ -70,6 +70,7 @@ export async function konfirmasiPresensi(rid, tgl, sl, data, cat) {
 
 export function akademikTabs(ctx) {
   const { fieldHTML, readForm, modal, errMsg, wireImages } = ctx;
+  const isAdm = () => !ctx.isAdmin || ctx.isAdmin();
   const logErr = e => { console.error(e); toast(errMsg(e), "err"); };
 
   /* ================= Pengaturan Akademik ================= */
@@ -354,7 +355,7 @@ export function akademikTabs(ctx) {
         const rmap = Object.fromEntries(rapAll.filter(r => r.tapel === c.tapel && r.semester === c.semester).map(r => [r.siswaId, r]));
         out.innerHTML = `<div class="tbl-wrap">${sl.length ? `<table class="t"><thead><tr><th>No</th><th>Nama</th><th>Status rapor</th><th></th></tr></thead><tbody>${sl.map((s, i) => { const r = rmap[s.id]; return `<tr><td>${i + 1}</td><td>${esc(s.nama)}</td>
           <td>${r ? `<span class="pill ${r.status === "publikasi" ? "diterima" : "baru"}">${esc(RS[r.status])}</span>` : `<span class="muted">Belum dibuat</span>`}</td>
-          <td><div class="acts">${r ? `<button class="btn btn-ghost btn-sm" data-ed="${esc(s.id)}">Ubah</button>${r.status === "draf" ? `<button class="btn btn-ghost btn-sm" data-st="diperiksa" data-id="${esc(s.id)}">Tandai diperiksa</button>` : ""}${r.status === "diperiksa" ? `<button class="btn btn-sm" data-st="publikasi" data-id="${esc(s.id)}">Publikasikan</button>` : ""}${r.status !== "draf" ? `<button class="btn btn-ghost btn-sm" data-st="draf" data-id="${esc(s.id)}">Kembalikan ke draf</button>` : ""}<button class="btn btn-ghost btn-sm" data-pr="${esc(s.id)}">Cetak</button>` : ""}</div></td></tr>`; }).join("")}</tbody></table>` : `<div class="empty" style="border:0">Belum ada siswa aktif.</div>`}</div>
+          <td><div class="acts">${r ? `<button class="btn btn-ghost btn-sm" data-ed="${esc(s.id)}">Ubah</button>${r.status === "draf" ? `<button class="btn btn-ghost btn-sm" data-st="diperiksa" data-id="${esc(s.id)}">Tandai diperiksa</button>` : ""}${r.status === "diperiksa" && isAdm() ? `<button class="btn btn-sm" data-st="publikasi" data-id="${esc(s.id)}">Publikasikan</button>` : ""}${r.status !== "draf" && (isAdm() || r.status !== "publikasi") ? `<button class="btn btn-ghost btn-sm" data-st="draf" data-id="${esc(s.id)}">Kembalikan ke draf</button>` : ""}<button class="btn btn-ghost btn-sm" data-pr="${esc(s.id)}">Cetak</button>` : ""}</div></td></tr>`; }).join("")}</tbody></table>` : `<div class="empty" style="border:0">Belum ada siswa aktif.</div>`}</div>
           <p style="margin-top:14px"><button class="btn" id="gen" ${sl.length ? "" : "disabled"}>Buat / perbarui draf semua siswa</button> <span class="muted small">Rapor yang sudah diperiksa/dipublikasikan tidak ditimpa.</span></p>`;
         const gen = $("#gen");
         if (gen) gen.onclick = async () => {

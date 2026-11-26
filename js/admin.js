@@ -183,7 +183,7 @@ const MENU = [
   ["Laporan", "laporan", ["laporan"]]
 ];
 // Hak akses menu: admin penuh; pegawai berperan hanya melihat menu perannya
-const ROLE_TABS = { kepala: ["laporan", "persetujuan", "rekapsiswa", "realisasi"], bendahara: ["kas", "anggaran", "realisasi"], sarpras: ["aset", "aset_log"] };
+const ROLE_TABS = { operator: ["siswa", "rombel", "naik", "absen", "rekapsiswa", "wali", "info_ortu", "mapel", "nilai", "rapor", "akad"], kepala: ["laporan", "persetujuan", "rekapsiswa", "realisasi"], bendahara: ["kas", "anggaran", "realisasi"], sarpras: ["aset", "aset_log"] };
 const allowed = k => state.admin || (state.peran || []).some(p => (ROLE_TABS[p] || []).includes(k));
 const openGrp = new Set();
 
@@ -431,7 +431,7 @@ async function tabSettings(main) {
 /* ---------- Presensi (modul terpisah) ---------- */
 const P = presensiTabs({ fieldHTML, readForm, modal, errMsg, wireImages, refresh: () => renderTab() });
 
-const AK0 = akademikTabs({ fieldHTML, readForm, modal, errMsg, wireImages });
+const AK0 = akademikTabs({ fieldHTML, readForm, modal, errMsg, wireImages, isAdmin: () => state.admin });
 const AK = { laporan: AK0.laporan, persetujuan: AK0.persetujuan, wali: AK0.wali, siswa: AK0.siswa, naik: AK0.naik, absen: AK0.absen, rekapsiswa: AK0.rekapSiswa, nilai: AK0.nilai, rapor: AK0.rapor, kas: AK0.kas, realisasi: AK0.realisasi, akad: AK0.akad };
 
 /* ---------- Start ---------- */
