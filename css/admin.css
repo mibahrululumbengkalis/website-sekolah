@@ -120,3 +120,20 @@ body.admin .modal .box h3{font-size:1.05rem}
 .menu-btn{width:38px;height:38px}
 body.admin .main{padding:22px 24px}
 body.admin .side h2{color:#fff;font-size:.98rem}
+
+/* Sidebar bisa diciutkan (hanya ikon) */
+.collapse-btn{display:grid;place-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;width:36px;height:36px;cursor:pointer;color:var(--pri-d)}
+@media(max-width:900px){.collapse-btn{display:none}}
+.shell{transition:grid-template-columns .2s}
+@media(min-width:901px){
+  .shell.min{grid-template-columns:68px 1fr}
+  .shell.min .side{padding:16px 8px;align-items:center}
+  .shell.min .brand-a h2,.shell.min .mg-h span,.shell.min .mg-h .chev,.shell.min .mg-b,.shell.min .foot-links a span{display:none}
+  .shell.min .brand-a{text-align:center}.shell.min .brand-a img{margin:0 auto 6px}
+  .shell.min .side nav{width:100%}
+  .shell.min .mg-h{justify-content:center;padding:11px 0;position:relative}
+  .shell.min .mg-h .cnt{position:absolute;top:2px;right:6px;display:inline-block!important;padding:0 5px;font-size:.62rem}
+  .shell.min .mg-h .cnt{display:inline-block}
+  .shell.min .foot-links a{justify-content:center;padding:11px 0}
+  .shell.min .foot-links{width:100%}
+}

@@ -167,7 +167,7 @@ const MENU = [
   ["Website", "dashboard", ["dashboard", "berita", "pengumuman", "slider", "guru", "galeri", "fasilitas", "program", "ppdb", "pesan", "pengaturan"]],
   ["Presensi Guru", "presensi", ["presensi", "rekap", "pegawai", "presensiset"]],
   ["Kesiswaan", "siswa", ["siswa", "rombel", "naik", "absen", "rekapsiswa"]],
-  ["Pembelajaran & Rapor", "mapel", ["mapel", "nilai", "rapor", "akad"]],
+  ["Akademik", "mapel", ["mapel", "nilai", "rapor", "akad"]],
   ["Keuangan", "kas", ["kas", "anggaran", "realisasi"]]
 ];
 const openGrp = new Set();
@@ -225,20 +225,23 @@ async function shell() {
   root.innerHTML = `<div class="shell"><aside class="side" id="side"><div class="brand-a"><img src="icons/logo-192.png" alt=""><h2>Admin MI Bahrul Ulum</h2></div>
     <nav>${MENU.map(([gl, gi, ks]) => { const on = ks.includes(state.tab) || openGrp.has(gl); if (ks.includes(state.tab)) openGrp.add(gl);
       const nb = ks.reduce((n, k) => n + (k === "ppdb" ? c.ppdbBaru || 0 : k === "pesan" ? c.pesanBaru || 0 : 0), 0);
-      return `<div class="mg ${on ? "open" : ""}" data-g="${esc(gl)}"><button type="button" class="mg-h">${ico(gi)}<span>${gl}</span>${nb ? `<span class="cnt">${nb}</span>` : ""}<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+      return `<div class="mg ${on ? "open" : ""}" data-g="${esc(gl)}"><button type="button" class="mg-h" title="${esc(gl)}">${ico(gi)}<span>${gl}</span>${nb ? `<span class="cnt">${nb}</span>` : ""}<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
       <div class="mg-b">${ks.map(k => `<a href="#${k}" data-t="${k}" class="${state.tab === k ? "on" : ""}"><span>${(TABS.find(t => t[0] === k) || [])[1]}</span>${badge(k)}</a>`).join("")}</div></div>`; }).join("")}</nav>
-    <div class="foot-links"><a href="index.html" target="_blank" rel="noopener">${ico("ext")}<span>Lihat website</span></a><a href="#" id="logout">${ico("out")}<span>Keluar</span></a></div></aside>
+    <div class="foot-links"><a href="index.html" target="_blank" rel="noopener" title="Lihat website">${ico("ext")}<span>Lihat website</span></a><a href="#" id="logout" title="Keluar">${ico("out")}<span>Keluar</span></a></div></aside>
     <div class="scrim" id="scrim"></div>
-    <div class="content"><header class="topbar"><button class="menu-btn" id="menu" aria-label="Menu">${ico("menu")}</button><span class="sp"></span>
+    <div class="content"><header class="topbar"><button class="menu-btn" id="menu" aria-label="Menu">${ico("menu")}</button><button class="collapse-btn" id="coll" aria-label="Ciutkan menu" title="Ciutkan / lebarkan menu">${ico("menu")}</button><span class="sp"></span>
       <span class="datepill">${ico("presensi")}<span>${esc(tglStr)}</span></span>
       <span class="avatar" title="${esc(mail)}">${esc(mail.charAt(0).toUpperCase())}</span></header>
     <main class="main" id="main"></main></div></div>`;
-  const side = $("#side"), scrim = $("#scrim");
+  const side = $("#side"), scrim = $("#scrim"), shellEl = $(".shell");
+  try { if (localStorage.getItem("mibu-side") === "min") shellEl.classList.add("min"); } catch {}
+  $("#coll").addEventListener("click", () => { shellEl.classList.toggle("min"); try { localStorage.setItem("mibu-side", shellEl.classList.contains("min") ? "min" : "full"); } catch {} });
   const closeNav = () => { side.classList.remove("open"); scrim.classList.remove("on"); };
   $("#menu").addEventListener("click", () => { side.classList.add("open"); scrim.classList.add("on"); });
   scrim.addEventListener("click", closeNav);
   side.addEventListener("click", e => {
     const h = e.target.closest(".mg-h");
+    if (h && shellEl.classList.contains("min") && window.innerWidth > 900) { shellEl.classList.remove("min"); try { localStorage.setItem("mibu-side", "full"); } catch {} h.parentElement.classList.add("open"); openGrp.add(h.parentElement.dataset.g); return; }
     if (h) { const g = h.parentElement; g.classList.toggle("open"); const n = g.dataset.g; g.classList.contains("open") ? openGrp.add(n) : openGrp.delete(n); return; }
     if (e.target.closest("a[data-t]")) closeNav();
   });
