@@ -176,7 +176,7 @@ else onAuthStateChanged(auth, async user => {
   if (!user) return viewLogin();
   try {
     const p = await getDoc(doc(db, "pegawai", user.uid));
-    if (!p.exists() || p.data().aktif !== true) return viewMsg("Akun belum aktif", "Akun Anda belum terdaftar atau dinonaktifkan sebagai guru. Hubungi admin madrasah.");
+    if (!p.exists() || p.data().aktif !== true) return viewMsg("Akun belum aktif", "Akun Anda belum terdaftar atau dinonaktifkan sebagai guru. Hubungi admin madrasah. Jika Anda admin, masuk lewat <a href=\"admin.html\">halaman admin</a>.");
     S.peg = p.data();
     const [rb, mp] = await Promise.all([getDocs(collection(db, "rombel")), getDocs(collection(db, "mapel"))]);
     S.rombel = Object.fromEntries(rb.docs.map(d => [d.id, d.data().nama])); S.mapel = Object.fromEntries(mp.docs.map(d => [d.id, d.data().nama]));
