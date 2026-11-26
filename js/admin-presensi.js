@@ -146,7 +146,7 @@ export function presensiTabs(ctx) {
   async function pegawai(main) {
     const rows = (await listCol("pegawai")).sort((a, b) => a.nama.localeCompare(b.nama));
     main.innerHTML = `<div class="top"><h1>Akun Guru (Presensi)</h1><button class="btn" id="add">+ Tambah akun guru</button></div>
-      <p class="muted small">Setiap guru login di <code>presensi.html</code> dengan email dan kata sandi di bawah. Gunakan email aktif milik guru agar fitur “Lupa kata sandi” berfungsi.</p>
+      <p class="muted small">Setiap guru login di <code>guru.html</code> (portal guru; presensi tetap bisa lewat <code>presensi.html</code>) dengan email dan kata sandi di bawah. Gunakan email aktif milik guru agar fitur “Lupa kata sandi” berfungsi.</p>
       <div class="tbl-wrap">${rows.length ? `<table class="t"><thead><tr><th>Nama</th><th>Jabatan</th><th>Email</th><th>Mulai</th><th>Status</th><th></th></tr></thead><tbody>
       ${rows.map(p => `<tr><td>${esc(p.nama)}</td><td>${esc(p.jabatan || "")}</td><td>${esc(p.email || "")}</td><td>${esc(p.mulai ? tglID(p.mulai) : "")}</td><td>${p.aktif ? '<span class="pill diterima">Aktif</span>' : '<span class="pill ditolak">Nonaktif</span>'}</td>
         <td><div class="acts"><button class="btn btn-ghost btn-sm" data-e="${esc(p.id)}">Ubah</button><button class="btn btn-ghost btn-sm" data-r="${esc(p.id)}">Reset sandi</button></div></td></tr>`).join("")}
@@ -184,17 +184,26 @@ export function presensiTabs(ctx) {
       }
       if (be) {
         const p = rows.find(x => x.id === be.dataset.e);
+        let rb = [], mp = []; try { [rb, mp] = await Promise.all([listCol("rombel"), listCol("mapel")]); } catch {}
+        const ck = (name, list, sel) => list.length ? list.sort((a, b) => String(a.nama).localeCompare(String(b.nama), "id", { numeric: true })).map(x => `<label style="display:inline-flex;gap:6px;align-items:center;margin:0 14px 6px 0;font-weight:500"><input type="checkbox" name="${name}" value="${esc(x.id)}" ${(sel || []).includes(x.id) ? "checked" : ""} style="margin:0">${esc(x.nama)}</label>`).join("") : `<span class="muted small">Belum ada data (isi menu Rombel / Mata Pelajaran).</span>`;
         const m = modal(`<h3>Ubah data guru</h3><form class="form" id="f-pe">
           <label class="f">Nama lengkap <span class="req">*</span><input name="nama" required maxlength="100" value="${esc(p.nama)}"></label>
           <label class="f">Jabatan<input name="jabatan" maxlength="80" value="${esc(p.jabatan || "")}"></label>
           <label class="f">Mulai dihitung presensi<input type="date" name="mulai" value="${esc(p.mulai || "")}"></label>
           <label class="f"><input type="checkbox" name="aktif" ${p.aktif ? "checked" : ""}>Akun aktif (guru nonaktif tidak bisa presensi dan tidak masuk rekap)</label>
+          <div class="f"><b>Wali kelas (boleh isi presensi siswa & melengkapi rapor)</b><div style="margin-top:6px">${ck("walas", rb, p.walas)}</div></div>
+          <div class="f"><b>Mengajar mapel (boleh input nilai)</b><div style="margin-top:6px">${ck("ajarMapel", mp, p.ajarMapel)}</div><b style="display:block;margin-top:8px">di rombel</b><div style="margin-top:6px">${ck("ajarRombel", rb, p.ajarRombel)}</div>
+          <p class="muted small" style="margin:6px 0 0">Guru mendapat hak input nilai untuk setiap kombinasi mapel × rombel yang dicentang.</p></div>
           <p class="muted small" style="margin:0">Email: ${esc(p.email || "")} (tidak dapat diubah dari sini)</p>
           <div class="btns"><button type="button" class="btn btn-ghost" data-x>Batal</button><button class="btn" type="submit">Simpan</button></div></form>`);
         m.querySelector("[data-x]").onclick = () => m.remove();
         m.querySelector("#f-pe").addEventListener("submit", async ev => {
           ev.preventDefault(); const f = ev.target;
-          try { await updateDoc(doc(db, "pegawai", p.id), { nama: f.nama.value.trim(), jabatan: f.jabatan.value.trim(), mulai: f.mulai.value, aktif: f.aktif.checked }); m.remove(); toast("Tersimpan"); ctx.refresh(); } catch (err) { toast(errMsg(err), "err"); }
+          const vals = n => [...f.querySelectorAll(`input[name=${n}]:checked`)].map(x => x.value);
+          const walas = vals("walas"), ajarMapel = vals("ajarMapel"), ajarRombel = vals("ajarRombel");
+          const ajar = ajarRombel.flatMap(r => ajarMapel.map(mm => r + "|" + mm));
+          const rombelAkses = [...new Set([...walas, ...ajarRombel])];
+          try { await updateDoc(doc(db, "pegawai", p.id), { nama: f.nama.value.trim(), jabatan: f.jabatan.value.trim(), mulai: f.mulai.value, aktif: f.aktif.checked, walas, ajarMapel, ajarRombel, ajar, rombelAkses }); m.remove(); toast("Tersimpan"); ctx.refresh(); } catch (err) { toast(errMsg(err), "err"); }
         });
       }
     });

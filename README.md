@@ -85,3 +85,6 @@ python3 -m http.server 8000   # lalu buka http://localhost:8000
 Menu baru (sidebar): Kesiswaan (Data Siswa, Rombel, Kenaikan & Kelulusan, Presensi Siswa, Rekap), Pembelajaran & Rapor (Mapel, Input Nilai, Rapor), Keuangan (Buku Kas, Anggaran, Realisasi), Pengaturan Akademik.
 Urutan awal: Pengaturan Akademik → Rombel → Mata Pelajaran → Data Siswa (atau Impor CSV).
 **Wajib Publish ulang `firestore.rules`** (koleksi baru hanya bisa diakses admin).
+
+## Portal guru
+Link guru: `https://mibahrululumbengkalis.github.io/website-sekolah/guru.html` (login pakai Akun Guru). Admin menetapkan wali kelas dan mapel yang diajar di Admin → Akun Guru → Ubah. **Publish ulang `firestore.rules`.**

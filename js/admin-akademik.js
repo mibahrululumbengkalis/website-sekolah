@@ -40,7 +40,7 @@ export const DEF = () => ({ tapel: defTapel(), semester: "Ganjil", bTugas: 20, b
 export async function cfg() {
   try { const d = await getDoc(doc(db, "akademik", "config")); return { ...DEF(), ...(d.exists() ? d.data() : {}) }; } catch { return DEF(); }
 }
-const akhir = (n, c) => {
+export const akhir = (n, c) => {
   if (!n) return null;
   const parts = [[n.tugas, c.bTugas], [n.uh, c.bUH], [n.uts, c.bUTS], [n.uas, c.bUAS]].filter(([v]) => num(v) !== null);
   const w = parts.reduce((s, [, b]) => s + Number(b), 0);

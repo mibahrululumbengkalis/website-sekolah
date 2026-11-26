@@ -73,7 +73,7 @@ function applyBrand() {
     ${fi(I.tel, "Kontak & Info", [s.telp, wa ? "WA " + s.wa : ""].filter(Boolean).join(" · "))}
     ${fi(I.web, "Media Sosial & Email", s.email)}
     <div class="socs">${sosmed}</div>
-  </div><div class="copy"><span>${esc(s.nama)}${s.alamat ? " · " + esc(clip(s.alamat, 60)) : ""}</span><span><a href="presensi.html">Presensi Guru</a> · © ${new Date().getFullYear()} ${esc(s.nama)}. Hak cipta dilindungi.</span></div></div>`;
+  </div><div class="copy"><span>${esc(s.nama)}${s.alamat ? " · " + esc(clip(s.alamat, 60)) : ""}</span><span><a href="guru.html">Portal Guru</a> · © ${new Date().getFullYear()} ${esc(s.nama)}. Hak cipta dilindungi.</span></div></div>`;
 }
 
 /* ---------- Komponen ---------- */
