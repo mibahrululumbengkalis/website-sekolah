@@ -1,14 +1,13 @@
 // ============================================================
-// KONFIGURASI FIREBASE
-// Isi dengan nilai dari: Firebase Console > Project settings > Your apps > Web app (</>)
-// Nilai ini AMAN berada di repo publik; keamanan data diatur oleh firestore.rules.
-// Selama masih "ISI_...", website berjalan dalam MODE DEMO (data contoh, tidak tersimpan).
+// KONFIGURASI FIREBASE (project: mibahrululum)
+// Nilai ini publik by design; keamanan data diatur oleh firestore.rules.
 // ============================================================
 export const firebaseConfig = {
-  apiKey: "ISI_API_KEY",
-  authDomain: "ISI_PROJECT_ID.firebaseapp.com",
-  projectId: "ISI_PROJECT_ID",
-  storageBucket: "ISI_PROJECT_ID.firebasestorage.app",
-  messagingSenderId: "ISI_SENDER_ID",
-  appId: "ISI_APP_ID"
+  apiKey: "AIzaSyBvWO8KuOHgoHC6fxDu3hWdyXhzyMYRWu8",
+  authDomain: "mibahrululum.firebaseapp.com",
+  projectId: "mibahrululum",
+  storageBucket: "mibahrululum.firebasestorage.app",
+  messagingSenderId: "411797449456",
+  appId: "1:411797449456:web:9954e9cf7c02f9e4bf3035",
+  measurementId: "G-0VD3QXWJLH"
 };
